@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33403.182
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EquipmentLayout", "EquipmentLayout\EquipmentLayout.csproj", "{D7E014D2-AF78-451A-B691-6DF1AB7B851D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EquipmentLayout_F", "EquipmentLayout\EquipmentLayout_F.csproj", "{D7E014D2-AF78-451A-B691-6DF1AB7B851D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

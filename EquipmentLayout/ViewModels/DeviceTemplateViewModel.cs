@@ -6,51 +6,67 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Google.OrTools.Sat;
 
 namespace EquipmentLayout.ViewModels
 {
     public class DeviceTemplateViewModel : BaseViewModel
     {
-        public DeviceTemplate _model;
-
-        public DeviceTemplate Model => _model;
+        private readonly DeviceTemplate _model;
 
 
-        public int Width 
-        { 
-            get => _model.Width;
+        public DeviceTemplate Model { get { return _model; } }
+
+
+
+        private int _width;
+        public int Width
+        {
+            get => _width;
             set
             {
-                if (_model.Width == value) return; else _model.Width = value; OnPropertyChanged();
+                if (_width == value) return;
+                _width = value;
+                OnPropertyChanged();
             }
         }
 
+        private int _height;
         public int Height
         {
-            get => _model.Height;
+            get => _height;
             set
             {
-                if (_model.Height == value) return; else _model.Height = value; OnPropertyChanged();
+                if (_height == value) return;
+                _height = value;
+                OnPropertyChanged();
             }
         }
 
+        private string _name;
         public string Name
         {
-            get => _model.Name;
+            get => _name;
             set
             {
-                if (_model.Name == value) return; else _model.Name = value; OnPropertyChanged();
+                if (_name == value) return;
+                _name = value;
+                OnPropertyChanged();
             }
         }
 
+        private int _count;
         public int Count
         {
-            get => _model.Count;
+            get => _count;
             set
             {
-                if (_model.Count == value) return; else _model.Count = value; OnPropertyChanged();
+                if (_count == value) return;
+                _count = value;
+                OnPropertyChanged();
             }
         }
+
 
         public DeviceTemplateViewModel Clone()
         {

@@ -27,7 +27,8 @@
                 </DataGrid>
 
                 <DockPanel  DockPanel.Dock="Bottom">
-                    <Button Command="{Binding Path=AddTemplateCommand}" Height="25" DockPanel.Dock="Left" HorizontalAlignment="Left">Добавить</Button>
+                    <Button Command="{Binding AddTemplateCommand}" Content="Добавить устройство" Margin="5" />
+
                     <Button Command="{Binding DeleteTemplateCommand}" Content="Удалить" Width="85"/>
                     <Button Command="{Binding CreateLayoutCommand}" Content="Добавить площадку" Margin="5" />
 
@@ -115,25 +116,17 @@
                                 <TextBlock Text="{Binding DataContext.Name, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Grid>
                         </DataTemplate>
-
-
-
-
-
-
-
-
                     </ItemsControl.ItemTemplate>
 
 
 
                 </ItemsControl>
                 <Rectangle Margin="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="{Binding Path=Zone.Width, UpdateSourceTrigger=PropertyChanged}" Height="{Binding Path=Zone.Height, UpdateSourceTrigger=PropertyChanged}" Stroke="Black"/>
-                <ItemsControl ItemsSource="{Binding Obstacles}" Margin="0,0,530,0">
+                <ItemsControl ItemsSource="{Binding Obstacles}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Rectangle Width="{Binding Width}" Height="{Binding Height}" Fill="Red"
-                                       Stroke="Black" Opacity="0.5">
+                       Stroke="Black" Opacity="0.5">
                                 <Rectangle.RenderTransform>
                                     <TranslateTransform X="{Binding Position.X}" Y="{Binding Position.Y}" />
                                 </Rectangle.RenderTransform>
@@ -141,6 +134,7 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
+
             </Grid>
 
 

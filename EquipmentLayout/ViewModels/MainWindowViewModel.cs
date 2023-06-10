@@ -1,14 +1,14 @@
 ﻿using EquipmentLayout.Infrastructure;
 using EquipmentLayout.Models;
-using EquipmentLayout.Views;
 using Prism.Commands;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Shapes;
+using Google.OrTools.Sat;
 
 namespace EquipmentLayout.ViewModels
 {
@@ -27,6 +27,7 @@ namespace EquipmentLayout.ViewModels
         public DelegateCommand DeleteTemplateCommand { get; set; }
         public DelegateCommand AddTemplateCommand { get; set; }
 
+
         private Rectangle _zone;
 
         public Rectangle Zone
@@ -39,26 +40,9 @@ namespace EquipmentLayout.ViewModels
             }
         }
 
-        public List<Device> InputItems
-        {
-            get
-            {
-                var devices = new List<Device>();
-                var factory = new DeviceFactory();
-                foreach (var temp in DeviceTemplateViewModels)
-                {
-                    for (int i = 0; i < temp.Count; i++)
-                    {
-                        var device = factory.GetDevice(new Point(), temp.Model, temp.Name);
-                        devices.Add(device);
-                    }
-                }
-                return devices;
-            }
-        }
-
         public ObservableCollection<Device> RectItems { get; set; }
         public ObservableCollection<Obstacle> Obstacles { get; set; }
+
 
         public DeviceTemplateViewModel SelectedDeviceTemplate
         {
@@ -194,33 +178,42 @@ namespace EquipmentLayout.ViewModels
 
         private void CalcCommand_Executed()
         {
-            var csvWriter = new CsvDeviceSerializer();
-            csvWriter.Write(Zone, InputItems, "input.csv");
-
-            var process = new Process();
-            var path = "stock_cutter.exe";
-
-            process.Exited += ProcessExited;
-
-            process.StartInfo.FileName = path;
-            process.EnableRaisingEvents = true;
-            process.Start();
-        }
-
-        private void ProcessExited(object sender, EventArgs e)
-        {
-            var csvReader = new CsvDeviceDeserializer();
-            var devices = csvReader.Read("output.csv");
-
-            RectItems = new ObservableCollection<Device>();
-            foreach (var device in devices)
+            RectItems.Clear();
+            foreach (var deviceTemplateViewModel in DeviceTemplateViewModels)
             {
-                var newDevice = new Device(device.DeviceTemplate, device.Position, device.DeviceTemplate.Name);
-                RectItems.Add(newDevice);
+                for (int i = 0; i < deviceTemplateViewModel.Count; i++)
+                {
+                    var deviceTemplate = deviceTemplateViewModel.Model;
+                    var device = new Device(deviceTemplate, new Point(), "Device");
+                    RectItems.Add(device);
+                }
             }
+
+            var childRects = DeviceTemplateViewModels
+                .SelectMany(vm => Enumerable.Range(0, vm.Count).Select(_ => new int[] { vm.Width, vm.Height }))
+                .ToList();
+            var parentRects = GetParentRects();
+            var solutions = Solver.PlaceEquipment(childRects, parentRects);
+
+            if (solutions.Count > 0)
+            {
+                for (int i = 0; i < RectItems.Count; i++)
+                {
+                    var device = RectItems[i];
+                    var solution = solutions[i];
+                    device.Position = new Point(solution[0], solution[1]);
+                }
+            }
+
             OnPropertyChanged(nameof(RectItems));
         }
 
+        private List<int[]> GetParentRects()
+        {
+            var parentRects = new List<int[]>();
+            parentRects.Add(new int[] { (int)Zone.Width, (int)Zone.Height });
+            return parentRects;
+        }
 
         private void DeleteTemplateCommand_Executed()
         {
@@ -230,7 +223,10 @@ namespace EquipmentLayout.ViewModels
         private void AddTemplateCommand_Executed()
         {
             if (SelectedDeviceTemplate != null)
-                DeviceTemplateViewModels.Add(SelectedDeviceTemplate.Clone());
+            {
+                var deviceTemplate = SelectedDeviceTemplate.Clone();
+                DeviceTemplateViewModels.Add(deviceTemplate);
+            }
             else
             {
                 var template2 = new DeviceTemplate(200, 100, "Name");
@@ -238,6 +234,11 @@ namespace EquipmentLayout.ViewModels
                 DeviceTemplateViewModels.Add(vm_template2);
             }
         }
+
+
+
+
+
 
         private void AddObstacleCommand_Executed()
         {
@@ -255,6 +256,8 @@ namespace EquipmentLayout.ViewModels
             ObstacleX = "0";
             ObstacleY = "0";
         }
+
+
 
         private void OnLoad()
         {
@@ -284,6 +287,7 @@ namespace EquipmentLayout.ViewModels
             AddTemplateCommand = new DelegateCommand(AddTemplateCommand_Executed);
             DeleteTemplateCommand = new DelegateCommand(DeleteTemplateCommand_Executed);
             AddObstacleCommand = new DelegateCommand(AddObstacleCommand_Executed);
+
             LayoutModels = new ObservableCollection<LayoutModel>();
             Zone = new Rectangle()
             {
@@ -312,6 +316,7 @@ namespace EquipmentLayout.ViewModels
             DeviceTemplateViewModels.Add(vm_template2);
             OnLoad();
         }
+
         private int layoutCount = 1;
         private void CreateLayoutCommand_Executed()
         {
@@ -323,14 +328,11 @@ namespace EquipmentLayout.ViewModels
             Obstacles.Clear();
         }
 
-
         private void SwitchLayoutCommand_Executed()
         {
             layoutCount++;
             Obstacles.Clear();
-
         }
-
     }
 
     public class Property<T>
