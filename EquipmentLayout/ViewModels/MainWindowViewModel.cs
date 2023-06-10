@@ -208,6 +208,10 @@ namespace EquipmentLayout.ViewModels
             OnPropertyChanged(nameof(RectItems));
         }
 
+
+
+
+
         private List<int[]> GetParentRects()
         {
             var parentRects = new List<int[]>();

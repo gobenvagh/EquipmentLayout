@@ -61,13 +61,11 @@
 
 
                 <TextBlock VerticalAlignment="Center">Ширина</TextBlock>
-                <TextBox Text="{Binding Path=Zone.Width, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5" Width="100">
-                </TextBox>
+                <TextBox Text="{Binding Path=SelectedDeviceTemplate.Width, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5" Width="100" />
 
                 <TextBlock VerticalAlignment="Center">Высота</TextBlock>
+                <TextBox Text="{Binding Path=SelectedDeviceTemplate.Height, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5" Width="100" />
 
-                <TextBox Text="{Binding Path=Zone.Height, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5" Width="100">
-                </TextBox>
 
                 <Button Margin="5" Height="20" Width="60" Command="{Binding CalcCommand}" Content="Расчет">
                 </Button>

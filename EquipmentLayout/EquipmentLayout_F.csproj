@@ -26,7 +26,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -110,8 +110,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Infrastructure\BaseViewModel.cs" />
-    <Compile Include="Models\CsvDeviceSerializer.cs" />
-    <Compile Include="Models\CsvDeviceDeserializer.cs" />
     <Compile Include="Models\LayoutModel.cs" />
     <Compile Include="Models\Obstacle.cs" />
     <Compile Include="Models\Solver.cs" />
