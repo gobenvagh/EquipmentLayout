@@ -4,10 +4,15 @@ using Prism.Commands;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
+using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Shapes;
 
 namespace EquipmentLayout.ViewModels
@@ -15,32 +20,64 @@ namespace EquipmentLayout.ViewModels
     public class MainWindowViewModel : BaseViewModel
     {
         public ObservableCollection<DeviceTemplateViewModel> DeviceTemplateViewModels { get; set; }
-        public ObservableCollection<LayoutModel> LayoutModels { get; set; }
 
-        public LayoutModel SelectedLayoutModel { get; set; }
-        private DeviceTemplateViewModel _selectedDeviceTemplate;
+        public ObservableCollection<IRectItem> RectItems { get; set; }
 
-        public DelegateCommand CreateLayoutCommand { get; set; }
-        public DelegateCommand SwitchLayoutCommand { get; set; }
-        public DelegateCommand CalcCommand { get; set; }
-        public DelegateCommand AddObstacleCommand { get; set; }
-        public DelegateCommand DeleteTemplateCommand { get; set; }
-        public DelegateCommand AddTemplateCommand { get; set; }
+        public ObservableCollection<ObstacleViewModel> ObstacleViewModels { get; set; }
+
+        public ObservableCollection<IProperty> Properties { get; set; }
+
+        public DelegateCommand CalcCommand { get; }
+        public DelegateCommand DeleteTemplateCommand { get; }
+        public DelegateCommand AddObstacleCommand { get; }
+        public ObservableCollectionItemsProvider<ObstacleViewModel, IRectItem> RectItemsProvider { get; }
+        public DelegateCommand AddTemplateCommand { get; }
 
         private Rectangle _zone;
+
         public Rectangle Zone
         {
             get => _zone;
             set
             {
-                _zone = value;
+                this._zone = value;
                 OnPropertyChanged(nameof(Zone));
             }
         }
 
-        public ObservableCollection<Device> RectItems { get; set; }
-        public ObservableCollection<Obstacle> Obstacles { get; set; }
+        public List<Device> InputItems
+        {
+            get
+            {
+                var devices = new List<Device>();
+                var factory = new DeviceFactory();
+                foreach (var temp in DeviceTemplateViewModels)
+                {
+                    for (int i = 0; i < temp.Count; i++)
+                    {
+                        var device = factory.GetDevice(new Point(), temp.Model);
+                        devices.Add(device);
+                    }
+                }
+                return devices;
+            }
+        }
 
+
+        private ObstacleViewModel _selectedObstacle;
+        public ObstacleViewModel SelectedObstacle
+        {
+            get => _selectedObstacle;
+            set
+            {
+                if (_selectedObstacle == value) return;
+                _selectedObstacle = value;
+                UpdateProperties();
+                OnPropertyChanged();
+            }
+        }
+
+        private DeviceTemplateViewModel _selectedDeviceTemplate;
         public DeviceTemplateViewModel SelectedDeviceTemplate
         {
             get => _selectedDeviceTemplate;
@@ -53,152 +90,117 @@ namespace EquipmentLayout.ViewModels
             }
         }
 
-        public ObservableCollection<Property<DeviceTemplateViewModel>> Properties { get; set; }
-
-        private TextBox _widthTextBox;
-        public TextBox WidthTextBox
-        {
-            get => _widthTextBox;
-            set
-            {
-                _widthTextBox = value;
-                OnPropertyChanged(nameof(WidthTextBox));
-            }
-        }
-
-        private TextBox _heightTextBox;
-        public TextBox HeightTextBox
-        {
-            get => _heightTextBox;
-            set
-            {
-                _heightTextBox = value;
-                OnPropertyChanged(nameof(HeightTextBox));
-            }
-        }
-
-        private TextBox _xTextBox;
-        public TextBox XTextBox
-        {
-            get => _xTextBox;
-            set
-            {
-                _xTextBox = value;
-                OnPropertyChanged(nameof(XTextBox));
-            }
-        }
-
-        private TextBox _yTextBox;
-        public TextBox YTextBox
-        {
-            get => _yTextBox;
-            set
-            {
-                _yTextBox = value;
-                OnPropertyChanged(nameof(YTextBox));
-            }
-        }
-
-        private string _obstacleWidth;
-        public string ObstacleWidth
-        {
-            get => _obstacleWidth;
-            set
-            {
-                _obstacleWidth = value;
-                OnPropertyChanged(nameof(ObstacleWidth));
-            }
-        }
-
-        private string _obstacleHeight;
-        public string ObstacleHeight
-        {
-            get => _obstacleHeight;
-            set
-            {
-                _obstacleHeight = value;
-                OnPropertyChanged(nameof(ObstacleHeight));
-            }
-        }
-
-        private string _obstacleX;
-        public string ObstacleX
-        {
-            get => _obstacleX;
-            set
-            {
-                _obstacleX = value;
-                OnPropertyChanged(nameof(ObstacleX));
-            }
-        }
-
-        private string _obstacleY;
-        public string ObstacleY
-        {
-            get => _obstacleY;
-            set
-            {
-                _obstacleY = value;
-                OnPropertyChanged(nameof(ObstacleY));
-            }
-        }
-
         private void UpdateProperties()
         {
-            WidthTextBox = GetTextBoxByName("WidthTextBox");
-            HeightTextBox = GetTextBoxByName("HeightTextBox");
+            Action<DeviceTemplateViewModel, object> setter = (x, v) => (x as DeviceTemplateViewModel).Name = (string)v;
+            Func<DeviceTemplateViewModel, object> getter = (x) => (x as DeviceTemplateViewModel).Name;
 
-            var model = _selectedDeviceTemplate;
+            var templateDataContext = _selectedDeviceTemplate;
 
-            if (model == null)
+            if (templateDataContext != null)
             {
-                Properties = null;
+                var props = new DeviceTemplatePropertiesBuilder().BuildProperties(templateDataContext);
+                this.Properties = new ObservableCollection<IProperty>(props);
                 OnPropertyChanged(nameof(Properties));
                 return;
             }
 
-            var properties = new List<Property<DeviceTemplateViewModel>>
+            var obstacleDataContext = _selectedObstacle;
+
+            if (obstacleDataContext != null)
             {
-                new Property<DeviceTemplateViewModel>("Имя", model.Name, model,
-                    (x, v) => x.Name = (string)v,
-                    (x) => x.Name),
-
-                new Property<DeviceTemplateViewModel>( "Ширина", model.Width, model,
-                    (x, v) =>
-                    {
-                        x.Width = int.Parse(v.ToString());
-                        model.Model.Width = x.Width; // Обновление ширины в выбранном шаблоне
-                    },
-                    (x) => x.Width),
-
-                new Property<DeviceTemplateViewModel>( "Высота", model.Height, model,
-                    (x, v) =>
-                    {
-                        x.Height = int.Parse(v.ToString());
-                        model.Model.Height = x.Height; // Обновление высоты в выбранном шаблоне
-                    },
-                    (x) => x.Height)
-            };
-
-            Properties = new ObservableCollection<Property<DeviceTemplateViewModel>>(properties);
-            OnPropertyChanged(nameof(Properties));
-
-            // Обновление значений ширины и высоты в текстовых полях
-            WidthTextBox.Text = model.Width.ToString();
-            HeightTextBox.Text = model.Height.ToString();
+                var props = new ObstaclePropertiesBuilder().BuildProperties(obstacleDataContext);
+                this.Properties = new ObservableCollection<IProperty>(props);
+                OnPropertyChanged(nameof(Properties));
+                return;
+            }
         }
 
         private void CalcCommand_Executed()
         {
+            var csvWriter = new CsvDeviceSerializer();
+            csvWriter.Write(Zone, DeviceTemplateViewModels, ObstacleViewModels, "input.csv");
+
+            var process = new Process();
+            var path = "stock_cutter.exe";
+
+            process.Exited += ProcessExited;
+
+            process.StartInfo.FileName = path;
+            process.EnableRaisingEvents = true;
+            process.Start();
+
+        }
+
+        private void ProcessExited(object sender, EventArgs e)
+        {
+            var csvReader = new CsvDeviceDeserializer();
+            var devices = csvReader.Read("output.csv");
+
+            RectItems = new ObservableCollection<IRectItem>(devices);
+            OnPropertyChanged(nameof(RectItems));
+        }
+
+        public MainWindowViewModel()
+        {
+            DeviceTemplateViewModels = new ObservableCollection<DeviceTemplateViewModel>();
+            RectItems = new ObservableCollection<IRectItem>();
+            ObstacleViewModels = new ObservableCollection<ObstacleViewModel>();
+
+            CalcCommand = new DelegateCommand(CalcCommand_Executed1);
+            AddTemplateCommand = new DelegateCommand(AddTemplateCommand_Executed);
+            DeleteTemplateCommand = new DelegateCommand(DeleteTemplateCommand_Executed);
+            AddObstacleCommand = new DelegateCommand(AddObstacleCommand_Executed);
+
+            RectItemsProvider = new ObservableCollectionItemsProvider<ObstacleViewModel, IRectItem>(ObstacleViewModels, RectItems);
+
+            Zone = new Rectangle()
+            {
+                Width = 460,
+                Height = 330,
+            };
+
+            var ovm = new ObstacleViewModel();
+            ovm.Name = "Столб";
+            //ObstacleViewModels.Add(ovm);
+
+            var factory = new DeviceFactory();
+
+            var template = new DeviceTemplate(100, 100, "MyDevice");
+            var vm_template = new DeviceTemplateViewModel(template);
+
+            DeviceTemplateViewModels.Add(vm_template);
+
+            var template2 = new DeviceTemplate(200, 100, "MyDevice2");
+            var vm_template2 = new DeviceTemplateViewModel(template2);
+
+            var position = new Point(100, 50);
+            var device1 = factory.GetDevice(position, template2);
+
+            var position2 = new Point(20, 30);
+            var device2 = factory.GetDevice(position2, template);
+
+            //RectItems.Add(device1);
+            //RectItems.Add(device2);
+
+            DeviceTemplateViewModels.Add(vm_template2);
+
+        }
+
+        private void CalcCommand_Executed1()
+        {
             try
             {
+                var obstaclesVm = this.ObstacleViewModels;
+                var obstacles = obstaclesVm.Select(x => x.Model).ToList();
                 RectItems.Clear();
+                var factory = new DeviceFactory();
                 foreach (var deviceTemplateViewModel in DeviceTemplateViewModels)
                 {
                     for (int i = 0; i < deviceTemplateViewModel.Count; i++)
                     {
                         var deviceTemplate = deviceTemplateViewModel.Model;
-                        var device = new Device(deviceTemplate, new Point(), "Device");
+                        var device = factory.GetDevice(new Point(), deviceTemplate, false);
                         RectItems.Add(device);
                     }
                 }
@@ -207,22 +209,28 @@ namespace EquipmentLayout.ViewModels
                     .SelectMany(vm => Enumerable.Range(0, vm.Count).Select(_ => new int[] { vm.Model.Width, vm.Model.Height }))
                     .ToList();
                 var parentRects = GetParentRects();
-                var solutions = Solver.PlaceEquipment(childRects, parentRects, Obstacles.ToList());
+                var solutions = Solver.PlaceEquipment(childRects, parentRects, obstacles);
 
                 // Размещение оборудования на свободных местах в зоне
                 if (solutions.Count > 0)
                 {
-                    for (int i = 0; i < RectItems.Count; i++)
+                    for (int i = 0; i < RectItems.Count(); i++)
                     {
-                        var device = RectItems[i];
-                        var solution = solutions[i];
-                        device.Position = new Point(solution[0], solution[1]);
+                        if (RectItems[i] is Device device) 
+                        {
+                            var solution = solutions[i];
+                            device.X = solution[0];
+                            device.Y = solution[1];
+                        }
                     }
                 }
                 else
                 {
                     throw new InvalidOperationException("Не удалось разместить оборудование без пересечений в зоне.");
                 }
+
+                foreach (var ob in obstaclesVm)
+                    RectItems.Add(ob);
 
                 OnPropertyChanged(nameof(RectItems));
             }
@@ -243,131 +251,35 @@ namespace EquipmentLayout.ViewModels
 
         private void DeleteTemplateCommand_Executed()
         {
-            DeviceTemplateViewModels.Remove(SelectedDeviceTemplate);
+            this.DeviceTemplateViewModels.Remove(this.SelectedDeviceTemplate);
         }
 
         private void AddTemplateCommand_Executed()
         {
-            if (SelectedDeviceTemplate != null)
-            {
-                var deviceTemplate = SelectedDeviceTemplate.Clone();
-                DeviceTemplateViewModels.Add(deviceTemplate);
-            }
+            if (this.SelectedDeviceTemplate != null)
+                this.DeviceTemplateViewModels.Add(this.SelectedDeviceTemplate.Clone());
             else
-            {
-                var template2 = new DeviceTemplate(200, 100, "Name");
-                var vm_template2 = new DeviceTemplateViewModel(template2);
-                DeviceTemplateViewModels.Add(vm_template2);
-            }
-
-            UpdateProperties();
+                this.DeviceTemplateViewModels.Add(new DeviceTemplateViewModel());
         }
 
         private void AddObstacleCommand_Executed()
         {
-            if (int.TryParse(ObstacleWidth, out int width) &&
-                int.TryParse(ObstacleHeight, out int height) &&
-                int.TryParse(ObstacleX, out int x) &&
-                int.TryParse(ObstacleY, out int y))
-            {
-                // Ограничение координат препятствия в пределах зоны
-                int maxX = (int)Zone.Width - width;
-                int maxY = (int)Zone.Height - height;
-                x = Math.Max(0, Math.Min(x, maxX));
-                y = Math.Max(0, Math.Min(y, maxY));
+            ObstacleViewModel obsVm;
+            if (this.SelectedObstacle != null)
+                obsVm = this.SelectedObstacle.Clone();
+            else
+                obsVm = new ObstacleViewModel();
 
-                var obstacle = new Obstacle(new Point(x, y), width, height);
-                Obstacles.Add(obstacle);
-            }
-
-            ObstacleWidth = "0";
-            ObstacleHeight = "0";
-            ObstacleX = "0";
-            ObstacleY = "0";
+            this.ObstacleViewModels.Add(obsVm);
+            OnPropertyChanged(nameof(SelectedObstacle));
         }
 
-
-        private void OnLoad()
-        {
-            WidthTextBox = GetTextBoxByName("WidthTextBox");
-            HeightTextBox = GetTextBoxByName("HeightTextBox");
-            XTextBox = GetTextBoxByName("XTextBox");
-            YTextBox = GetTextBoxByName("YTextBox");
-            var initialLayout = new LayoutModel();
-            initialLayout.Name = "Layout 1";
-            LayoutModels = new ObservableCollection<LayoutModel>();
-            LayoutModels.Add(initialLayout);
-            SelectedLayoutModel = initialLayout;
-        }
-
-        private TextBox GetTextBoxByName(string name)
-        {
-            var textBox = new TextBox();
-            textBox.Name = name;
-            return textBox;
-        }
-
-        public MainWindowViewModel()
-        {
-            DeviceTemplateViewModels = new ObservableCollection<DeviceTemplateViewModel>();
-            RectItems = new ObservableCollection<Device>();
-            CalcCommand = new DelegateCommand(CalcCommand_Executed);
-            AddTemplateCommand = new DelegateCommand(AddTemplateCommand_Executed);
-            DeleteTemplateCommand = new DelegateCommand(DeleteTemplateCommand_Executed);
-            AddObstacleCommand = new DelegateCommand(AddObstacleCommand_Executed);
-
-            LayoutModels = new ObservableCollection<LayoutModel>();
-            Zone = new Rectangle()
-            {
-                Width = 1100,
-                Height = 700,
-            };
-            CreateLayoutCommand = new DelegateCommand(CreateLayoutCommand_Executed);
-            SwitchLayoutCommand = new DelegateCommand(SwitchLayoutCommand_Executed);
-            Obstacles = new ObservableCollection<Obstacle>();
-
-            var factory = new DeviceFactory();
-
-            var template = new DeviceTemplate(100, 100, "MyDevice");
-            var vm_template = new DeviceTemplateViewModel(template);
-            DeviceTemplateViewModels.Add(vm_template);
-
-            var template2 = new DeviceTemplate(200, 100, "MyDevice2");
-            var vm_template2 = new DeviceTemplateViewModel(template2);
-
-            var position = new Point(100, 50);
-            var device1 = factory.GetDevice(position, template2, "Device1");
-
-            var position2 = new Point(20, 30);
-            var device2 = factory.GetDevice(position2, template, "Device2");
-
-            DeviceTemplateViewModels.Add(vm_template2);
-            OnLoad();
-        }
-
-        private int layoutCount = 1;
-        private void CreateLayoutCommand_Executed()
-        {
-            layoutCount++;
-            var newLayout = new LayoutModel();
-            newLayout.Name = $"Layout {layoutCount}";
-            LayoutModels.Add(newLayout);
-            SelectedLayoutModel = newLayout;
-            Obstacles.Clear();
-        }
-
-        private void SwitchLayoutCommand_Executed()
-        {
-            layoutCount++;
-            Obstacles.Clear();
-        }
     }
 
-    public class Property<T>
+    public class Property<T> : IProperty
     {
         private T _model;
-
-        public string Name { get; set; }
+        public string Name { get; }
         public object Value
         {
             get => _getter(_model);
@@ -379,11 +291,51 @@ namespace EquipmentLayout.ViewModels
 
         public Property(string name, object value, T model, Action<T, object> setter, Func<T, object> getter)
         {
-            _model = model;
-            _setter = setter;
-            _getter = getter;
+            this._model = model;
+            this._setter = setter;
+            this._getter = getter;
             Name = name;
             Value = value;
         }
+    }
+
+    public class ObservableCollectionItemsProvider<S, T>
+    {
+        private ObservableCollection<S> _source;
+        private ObservableCollection<T> _target;
+
+        public ObservableCollectionItemsProvider(ObservableCollection<S> source, ObservableCollection<T> target)
+        {
+            _source = source;
+            _target = target;
+            _source.CollectionChanged += _source_CollectionChanged;
+        }
+
+        private void _source_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Reset:
+                case NotifyCollectionChangedAction.Add:
+                    {
+                        foreach (T item in e.NewItems.OfType<T>())
+                            _target.Add(item);
+                        break;
+                    }
+                case NotifyCollectionChangedAction.Remove:
+                    {
+                        foreach (T item in e.NewItems.OfType<T>())
+                            _target.Remove(item);
+                        break;
+                    }
+            }
+        }
+    }
+
+
+    public interface IProperty
+    {
+        string Name { get; }
+        object Value { get; set; }
     }
 }

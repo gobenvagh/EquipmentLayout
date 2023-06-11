@@ -6,13 +6,18 @@ namespace EquipmentLayout.Models
     {
         private class DeviceBuild : Device
         {
-            public DeviceBuild(DeviceTemplate deviceTemplate, Point position, string name)
-                : base(deviceTemplate, position, name) { }
+            public DeviceBuild(DeviceTemplate deviceTemplate, Point position)
+                : base(deviceTemplate, (int)position.X, (int)position.Y) { }
         }
 
-        public Device GetDevice(Point position, DeviceTemplate deviceTemplate, string name)
+        public Device GetDevice(Point position, DeviceTemplate deviceTemplate, bool isIncCount = true)
         {
-            return new DeviceBuild(deviceTemplate, position, name);
+            if(isIncCount)
+                deviceTemplate.Count++;
+
+            return new DeviceBuild(deviceTemplate, position);
         }
+
     }
+
 }

@@ -57,8 +57,8 @@ namespace EquipmentLayout.Models
                     // Проверяем на пересечение с препятствиями
                     foreach (var obstacle in obstacles)
                     {
-                        int obstacleX = (int)obstacle.Position.X;
-                        int obstacleY = (int)obstacle.Position.Y;
+                        int obstacleX = (int)obstacle.X;
+                        int obstacleY = (int)obstacle.Y;
                         int obstacleWidth = obstacle.Width;
                         int obstacleHeight = obstacle.Height;
 

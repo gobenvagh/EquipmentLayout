@@ -4,11 +4,27 @@ using System.ComponentModel;
 
 namespace EquipmentLayout.ViewModels
 {
-    public class ObstacleViewModel : BaseViewModel
+    public class ObstacleViewModel : BaseViewModel, IRectItem
     {
         private Obstacle _model;
 
-        public double X
+        public Obstacle Model => _model;
+
+
+        private string _name;
+
+        public string Name 
+        { 
+            get => _name;
+            set
+            {
+                if (_name == value) return;
+                _name = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int X
         {
             get => _model.X;
             set
@@ -19,7 +35,7 @@ namespace EquipmentLayout.ViewModels
             }
         }
 
-        public double Y
+        public int Y
         {
             get => _model.Y;
             set
@@ -30,7 +46,7 @@ namespace EquipmentLayout.ViewModels
             }
         }
 
-        public double Width
+        public int Width
         {
             get => _model.Width;
             set
@@ -41,7 +57,7 @@ namespace EquipmentLayout.ViewModels
             }
         }
 
-        public double Height
+        public int Height
         {
             get => _model.Height;
             set
@@ -52,19 +68,31 @@ namespace EquipmentLayout.ViewModels
             }
         }
 
+        public ObstacleViewModel Clone()
+        {
+            var clone = new ObstacleViewModel(this.Model.Clone());
+            clone.Name = this.Name;
+            return clone;
+        }
+
         public ObstacleViewModel()
         {
+            Name = "Препятствие";
             _model = new Obstacle(0, 0, 0, 0);
         }
 
-        public ObstacleViewModel(double x, double y, double width, double height)
+        public ObstacleViewModel(int x, int y, int width, int height)
         {
+            Name = "Препятствие";
             _model = new Obstacle(x, y, width, height);
         }
 
-        public Obstacle ToObstacle()
+        public ObstacleViewModel(Obstacle model)
         {
-            return _model;
+            Name = "Препятствие";
+            this._model = model;
         }
+
+
     }
 }

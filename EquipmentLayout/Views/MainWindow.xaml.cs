@@ -1,4 +1,5 @@
-﻿using EquipmentLayout.ViewModels;
+﻿using EquipmentLayout.Models;
+using EquipmentLayout.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -25,14 +26,14 @@ namespace EquipmentLayout.Views
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new MainWindowViewModel();
+            this.DataContext = new MainWindowViewModel();
             //canvas.Loaded += Canvas_Loaded; 
         }
 
-        /*        private void Canvas_Loaded(object sender, RoutedEventArgs e)
-                {
-                    DrawGrid();
-                }*/
+/*        private void Canvas_Loaded(object sender, RoutedEventArgs e)
+        {
+            DrawGrid();
+        }*/
 
         /*private void DrawGrid()
         {
@@ -80,9 +81,14 @@ namespace EquipmentLayout.Views
             //DrawGrid();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void ListBox_GotFocus(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void ListBoxObstacle_GotFocus(object sender, RoutedEventArgs e)
+        {
+            ListBoxDeviceTemplate.SelectedItem = null;
         }
     }
 }

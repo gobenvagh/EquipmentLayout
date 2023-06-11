@@ -1,77 +1,74 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media.Media3D;
+using System.Xml.Linq;
 
 namespace EquipmentLayout.Models
 {
-    public class DeviceTemplate : IArea, INotifyPropertyChanged
+    public class DeviceTemplate : IArea
     {
-        private int _width;
-        public int Width
+        public int Width { get; set; }
+        public int Height { get; set; }
+        public string Name { get; set; }
+
+        public int Count { get;set; }
+
+        Area WorkArea { get; set; }
+        Area ServiceArea { get; set; }
+
+        class Area
         {
-            get => _width;
-            set
+            public int Width { get; set; }
+            public int Height { get; set; }
+
+            public Point Position { get; set; }
+
+            public Area Clone()
             {
-                _width = value;
-                OnPropertyChanged(nameof(Width));
+                var clone = new Area();
+                clone.Width = Width;
+                clone.Height = Height;
+                clone.Position = Position;
+                return clone;
             }
         }
 
-        private int _height;
-        public int Height
+        public DeviceTemplate()
         {
-            get => _height;
-            set
-            {
-                _height = value;
-                OnPropertyChanged(nameof(Height));
-            }
+            this.Width = 100;
+            this.Height = 100;
+            this.Name = "Template";
+            Count = 0;
+
         }
 
-        private string _name;
-        public string Name
-        {
-            get => _name;
-            set
-            {
-                _name = value;
-                OnPropertyChanged(nameof(Name));
-            }
-        }
-
-        private int _count;
-        public int Count
-        {
-            get => _count;
-            set
-            {
-                _count = value;
-                OnPropertyChanged(nameof(Count));
-            }
-        }
 
         public DeviceTemplate(int width, int height, string name)
         {
-            Width = width;
-            Height = height;
-            Name = name;
+            this.Width = width;
+            this.Height = height;
+            this.Name = name;
+            Count = 0;
         }
 
         public DeviceTemplate Clone()
         {
-            return new DeviceTemplate(Width, Height, Name);
+            var clone = new DeviceTemplate(Width, Height, Name);
+            //clone.WorkArea = this.WorkArea.Clone();
+            //clone.ServiceArea = this.WorkArea.Clone();
+            return clone;
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+    }
 
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+    public interface IRectItem : IArea
+    {
+        int X { get; }
+        int Y { get; }
     }
 
     public interface IArea
@@ -80,51 +77,19 @@ namespace EquipmentLayout.Models
         int Height { get; }
     }
 
-    public class Device : IArea, INotifyPropertyChanged
+    public class Device : IRectItem
     {
-        private DeviceTemplate _deviceTemplate;
-        public DeviceTemplate DeviceTemplate
+        DeviceTemplate deviceTemplate;
+        public int Width { get => deviceTemplate.Width;}
+        public int Height { get => deviceTemplate.Height;}
+
+        public int X { get; set; }
+
+        public int Y { get; set; }
+        protected Device(DeviceTemplate deviceTemplate, int X, int Y)
         {
-            get => _deviceTemplate;
-            set
-            {
-                _deviceTemplate = value;
-                OnPropertyChanged(nameof(Width));
-                OnPropertyChanged(nameof(Height));
-            }
-        }
-
-        private Point _position;
-        public Point Position
-        {
-            get => _position;
-            set
-            {
-                _position = value;
-                OnPropertyChanged(nameof(X));
-                OnPropertyChanged(nameof(Y));
-            }
-        }
-
-        public int Width => DeviceTemplate?.Width ?? 0;
-        public int Height => DeviceTemplate?.Height ?? 0;
-        public string Name { get; set; }
-
-        public int X => (int)Position.X;
-        public int Y => (int)Position.Y;
-
-        public Device(DeviceTemplate deviceTemplate, Point position, string name)
-        {
-            DeviceTemplate = deviceTemplate;
-            Position = position;
-            Name = name;
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            this.deviceTemplate = deviceTemplate;
         }
     }
+
 }
