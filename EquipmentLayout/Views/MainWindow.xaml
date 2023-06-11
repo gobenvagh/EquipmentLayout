@@ -8,7 +8,11 @@
         Title="MainWindow" Height="842" Width="1450"
         DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Grid>
-        <DockPanel>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="0*"/>
+        </Grid.ColumnDefinitions>
+        <DockPanel Margin="10,14,15,12">
 
             <DockPanel Margin="10" DockPanel.Dock="Left">
                 <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
@@ -46,25 +50,19 @@
                                 </Grid.ColumnDefinitions>
                                 <Label Content="{Binding Path=Name}" Grid.Column="0"></Label>
                                 <TextBox Text="{Binding Path=Count}" HorizontalAlignment="Right" MinWidth="50" Grid.Column="1">
-
                                 </TextBox>
                             </Grid>
-
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
-
             </DockPanel>
 
             <StackPanel Margin="10"  DockPanel.Dock="Bottom" Orientation="Horizontal">
-
-
                 <TextBlock VerticalAlignment="Center">Ширина</TextBlock>
                 <TextBox Text="{Binding Path=Zone.Width, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5" Width="100">
                 </TextBox>
 
                 <TextBlock VerticalAlignment="Center">Высота</TextBlock>
-
                 <TextBox Text="{Binding Path=Zone.Height, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5" Width="100">
                 </TextBox>
 
@@ -77,6 +75,7 @@
                           DisplayMemberPath="Name"
                           Width="100"
                           VerticalAlignment="Center" />
+
                 <TextBlock Text="Размеры:" />
                 <TextBox Text="{Binding ObstacleWidth}" Width="50" Margin="5" />
                 <TextBox Text="{Binding ObstacleHeight}" Width="50" Margin="5" />
@@ -85,14 +84,32 @@
                 <TextBox Text="{Binding ObstacleY}" Width="50" Margin="5" />
                 <Button Margin="5" Height="20" Width="134" Command="{Binding AddObstacleCommand}" Content="Добавить препятствие" />
 
-
             </StackPanel>
 
-
-
             <Grid DockPanel.Dock="Right">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="0*"/>
+                </Grid.ColumnDefinitions>
 
-                <ItemsControl HorizontalAlignment="Left" VerticalAlignment="Top"  ItemsSource="{Binding RectItems}" Width="{Binding Path=Zone.Width, UpdateSourceTrigger=PropertyChanged}" Background="AliceBlue" Height="{Binding Path=Zone.Height, UpdateSourceTrigger=PropertyChanged}" Margin="10">
+                <ItemsControl ItemsSource="{Binding Obstacles}" d:IsHidden="True">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Rectangle Width="{Binding Width}" Height="{Binding Height}" Fill="Red" Stroke="Black" Opacity="0.5">
+                                <Rectangle.RenderTransform>
+                                    <TranslateTransform X="{Binding Position.X}" Y="{Binding Position.Y}" />
+                                </Rectangle.RenderTransform>
+                            </Rectangle>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas Width="{Binding Path=Zone.Width}" Height="{Binding Path=Zone.Height}" Background="AliceBlue" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+
+                <ItemsControl HorizontalAlignment="Left" VerticalAlignment="Top" ItemsSource="{Binding RectItems}" Background="AliceBlue" Margin="5,10,0,0" Grid.Column="0">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <Canvas x:Name="canvas" />
@@ -113,26 +130,8 @@
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
-
-
                 </ItemsControl>
-                <Rectangle Margin="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="{Binding Path=Zone.Width, UpdateSourceTrigger=PropertyChanged}" Height="{Binding Path=Zone.Height, UpdateSourceTrigger=PropertyChanged}" Stroke="Black"/>
-                <ItemsControl ItemsSource="{Binding Obstacles}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Rectangle Width="{Binding Width}" Height="{Binding Height}" Fill="Red"
-                       Stroke="Black" Opacity="0.5">
-                                <Rectangle.RenderTransform>
-                                    <TranslateTransform X="{Binding Position.X}" Y="{Binding Position.Y}" />
-                                </Rectangle.RenderTransform>
-                            </Rectangle>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-
             </Grid>
-
-
         </DockPanel>
     </Grid>
 </Window>

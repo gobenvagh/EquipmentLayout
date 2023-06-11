@@ -270,6 +270,12 @@ namespace EquipmentLayout.ViewModels
                 int.TryParse(ObstacleX, out int x) &&
                 int.TryParse(ObstacleY, out int y))
             {
+                // Ограничение координат препятствия в пределах зоны
+                int maxX = (int)Zone.Width - width;
+                int maxY = (int)Zone.Height - height;
+                x = Math.Max(0, Math.Min(x, maxX));
+                y = Math.Max(0, Math.Min(y, maxY));
+
                 var obstacle = new Obstacle(new Point(x, y), width, height);
                 Obstacles.Add(obstacle);
             }
@@ -279,6 +285,7 @@ namespace EquipmentLayout.ViewModels
             ObstacleX = "0";
             ObstacleY = "0";
         }
+
 
         private void OnLoad()
         {
