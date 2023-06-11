@@ -1,23 +1,15 @@
 ﻿using EquipmentLayout.Infrastructure;
 using EquipmentLayout.Models;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Google.OrTools.Sat;
+using System.Windows.Controls;
 
 namespace EquipmentLayout.ViewModels
 {
-    public class DeviceTemplateViewModel : BaseViewModel
+    public class DeviceTemplateViewModel : BaseViewModel, INotifyPropertyChanged
     {
         private readonly DeviceTemplate _model;
 
-
-        public DeviceTemplate Model { get { return _model; } }
-
-
+        public DeviceTemplate Model => _model;
 
         private int _width;
         public int Width
@@ -27,7 +19,7 @@ namespace EquipmentLayout.ViewModels
             {
                 if (_width == value) return;
                 _width = value;
-                OnPropertyChanged();
+                OnPropertyChanged(nameof(Width));
             }
         }
 
@@ -39,9 +31,13 @@ namespace EquipmentLayout.ViewModels
             {
                 if (_height == value) return;
                 _height = value;
-                OnPropertyChanged();
+                OnPropertyChanged(nameof(Height));
             }
         }
+
+
+        public TextBox WidthTextBox { get; set; }
+        public TextBox HeightTextBox { get; set; }
 
         private string _name;
         public string Name
@@ -51,7 +47,7 @@ namespace EquipmentLayout.ViewModels
             {
                 if (_name == value) return;
                 _name = value;
-                OnPropertyChanged();
+                OnPropertyChanged(nameof(Name));
             }
         }
 
@@ -63,21 +59,40 @@ namespace EquipmentLayout.ViewModels
             {
                 if (_count == value) return;
                 _count = value;
-                OnPropertyChanged();
+                OnPropertyChanged(nameof(Count));
             }
         }
 
-
         public DeviceTemplateViewModel Clone()
         {
-            var cloneModel = this._model.Clone();
-            return new DeviceTemplateViewModel(cloneModel);
+            var cloneModel = _model.Clone();
+            return new DeviceTemplateViewModel(cloneModel)
+            {
+                Width = Width,
+                Height = Height,
+                Count = Count
+            };
         }
-
 
         public DeviceTemplateViewModel(DeviceTemplate model)
         {
             _model = model;
+            Width = model.Width;
+            Height = model.Height;
+            Count = 1;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+            // Обновляем значения ширины и высоты в связанных текстовых полях
+            if (propertyName == nameof(Width) && WidthTextBox != null)
+                WidthTextBox.Text = Width.ToString();
+            if (propertyName == nameof(Height) && HeightTextBox != null)
+                HeightTextBox.Text = Height.ToString();
         }
     }
 }

@@ -8,49 +8,70 @@ using System.Windows;
 
 namespace EquipmentLayout.Models
 {
-    public class DeviceTemplate : IArea
+    public class DeviceTemplate : IArea, INotifyPropertyChanged
     {
-        public int Width { get; set; }
-        public int Height { get; set; }
-        public string Name { get; set; }
-
-        public int Count { get; set; }
-
-        Area WorkArea { get; set; }
-        Area ServiceArea { get; set; }
-
-        class Area
+        private int _width;
+        public int Width
         {
-            public int Width { get; set; }
-            public int Height { get; set; }
-
-            public Point Position { get; set; }
-
-            public Area Clone()
+            get => _width;
+            set
             {
-                var clone = new Area();
-                clone.Width = Width;
-                clone.Height = Height;
-                clone.Position = Position;
-                return clone;
+                _width = value;
+                OnPropertyChanged(nameof(Width));
+            }
+        }
+
+        private int _height;
+        public int Height
+        {
+            get => _height;
+            set
+            {
+                _height = value;
+                OnPropertyChanged(nameof(Height));
+            }
+        }
+
+        private string _name;
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                _name = value;
+                OnPropertyChanged(nameof(Name));
+            }
+        }
+
+        private int _count;
+        public int Count
+        {
+            get => _count;
+            set
+            {
+                _count = value;
+                OnPropertyChanged(nameof(Count));
             }
         }
 
         public DeviceTemplate(int width, int height, string name)
         {
-            this.Width = width;
-            this.Height = height;
-            this.Name = name;
+            Width = width;
+            Height = height;
+            Name = name;
         }
 
         public DeviceTemplate Clone()
         {
-            var clone = new DeviceTemplate(Width, Height, Name);
-            //clone.WorkArea = this.WorkArea.Clone();
-            //clone.ServiceArea = this.WorkArea.Clone();
-            return clone;
+            return new DeviceTemplate(Width, Height, Name);
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 
     public interface IArea
@@ -61,25 +82,25 @@ namespace EquipmentLayout.Models
 
     public class Device : IArea, INotifyPropertyChanged
     {
-        public DeviceTemplate deviceTemplate;
+        private DeviceTemplate _deviceTemplate;
         public DeviceTemplate DeviceTemplate
         {
-            get { return deviceTemplate; }
+            get => _deviceTemplate;
             set
             {
-                deviceTemplate = value;
+                _deviceTemplate = value;
                 OnPropertyChanged(nameof(Width));
                 OnPropertyChanged(nameof(Height));
             }
         }
 
-        private Point position;
+        private Point _position;
         public Point Position
         {
-            get { return position; }
+            get => _position;
             set
             {
-                position = value;
+                _position = value;
                 OnPropertyChanged(nameof(X));
                 OnPropertyChanged(nameof(Y));
             }
@@ -94,9 +115,9 @@ namespace EquipmentLayout.Models
 
         public Device(DeviceTemplate deviceTemplate, Point position, string name)
         {
-            this.DeviceTemplate = deviceTemplate;
-            this.Position = position;
-            this.Name = name;
+            DeviceTemplate = deviceTemplate;
+            Position = position;
+            Name = name;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

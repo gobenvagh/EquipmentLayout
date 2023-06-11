@@ -4,6 +4,7 @@ using Prism.Commands;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,9 +28,7 @@ namespace EquipmentLayout.ViewModels
         public DelegateCommand DeleteTemplateCommand { get; set; }
         public DelegateCommand AddTemplateCommand { get; set; }
 
-
         private Rectangle _zone;
-
         public Rectangle Zone
         {
             get => _zone;
@@ -42,7 +41,6 @@ namespace EquipmentLayout.ViewModels
 
         public ObservableCollection<Device> RectItems { get; set; }
         public ObservableCollection<Obstacle> Obstacles { get; set; }
-
 
         public DeviceTemplateViewModel SelectedDeviceTemplate
         {
@@ -158,23 +156,36 @@ namespace EquipmentLayout.ViewModels
             }
 
             var properties = new List<Property<DeviceTemplateViewModel>>
+    {
+        new Property<DeviceTemplateViewModel>("Имя", model.Name, model,
+            (x, v) => x.Name = (string)v,
+            (x) => x.Name),
+
+       new Property<DeviceTemplateViewModel>( "Ширина", model.Width, model,
+            (x, v) =>
             {
-                new Property<DeviceTemplateViewModel>("Имя", model.Name, model,
-                    (x, v) => x.Name = (string)v,
-                    (x) => x.Name),
+                x.Width = int.Parse(v.ToString());
+                model.Model.Width = x.Width; // Обновление ширины в выбранном шаблоне
+            },
+            (x) => x.Width),
 
-                new Property<DeviceTemplateViewModel>("Ширина", model.Width, model,
-                    (x, v) => x.Width = int.Parse(v.ToString()),
-                    (x) => x.Width),
-
-                new Property<DeviceTemplateViewModel>("Высота", model.Height, model,
-                    (x, v) => x.Height = int.Parse(v.ToString()),
-                    (x) => x.Height)
-            };
+        new Property<DeviceTemplateViewModel>( "Высота", model.Height, model,
+            (x, v) =>
+            {
+                x.Height = int.Parse(v.ToString());
+                model.Model.Height = x.Height; // Обновление высоты в выбранном шаблоне
+            },
+            (x) => x.Height)
+    };
 
             Properties = new ObservableCollection<Property<DeviceTemplateViewModel>>(properties);
             OnPropertyChanged(nameof(Properties));
+
+            // Обновление значений ширины и высоты в текстовых полях
+            WidthTextBox.Text = model.Width.ToString();
+            HeightTextBox.Text = model.Height.ToString();
         }
+
 
         private void CalcCommand_Executed()
         {
@@ -190,7 +201,7 @@ namespace EquipmentLayout.ViewModels
             }
 
             var childRects = DeviceTemplateViewModels
-                .SelectMany(vm => Enumerable.Range(0, vm.Count).Select(_ => new int[] { vm.Width, vm.Height }))
+                .SelectMany(vm => Enumerable.Range(0, vm.Count).Select(_ => new int[] { vm.Model.Width, vm.Model.Height }))
                 .ToList();
             var parentRects = GetParentRects();
             var solutions = Solver.PlaceEquipment(childRects, parentRects);
@@ -207,8 +218,6 @@ namespace EquipmentLayout.ViewModels
 
             OnPropertyChanged(nameof(RectItems));
         }
-
-
 
 
 
@@ -237,11 +246,9 @@ namespace EquipmentLayout.ViewModels
                 var vm_template2 = new DeviceTemplateViewModel(template2);
                 DeviceTemplateViewModels.Add(vm_template2);
             }
+
+            UpdateProperties(); // Добавлено
         }
-
-
-
-
 
 
         private void AddObstacleCommand_Executed()
@@ -260,8 +267,6 @@ namespace EquipmentLayout.ViewModels
             ObstacleX = "0";
             ObstacleY = "0";
         }
-
-
 
         private void OnLoad()
         {

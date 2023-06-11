@@ -22,9 +22,9 @@
                 </StackPanel>
 
                 <DataGrid Height="100" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" 
-                          ItemsSource="{Binding Path=Properties, Mode=TwoWay}">
-
+          ItemsSource="{Binding Path=Properties}">
                 </DataGrid>
+
 
                 <DockPanel  DockPanel.Dock="Bottom">
                     <Button Command="{Binding AddTemplateCommand}" Content="Добавить устройство" Margin="5" />
@@ -108,14 +108,12 @@
                                         <SolidColorBrush Color="AliceBlue"/>
                                     </Rectangle.Fill>
                                     <Rectangle.RenderTransform>
-                                        <TranslateTransform X="{Binding X}" Y="{Binding Y}" />
+                                        <TranslateTransform X="{Binding Position.X}" Y="{Binding Position.Y}" />
                                     </Rectangle.RenderTransform>
                                 </Rectangle>
-                                <TextBlock Text="{Binding DataContext.Name, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
-
 
 
                 </ItemsControl>
