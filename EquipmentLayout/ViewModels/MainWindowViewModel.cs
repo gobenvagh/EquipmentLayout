@@ -190,35 +190,51 @@ namespace EquipmentLayout.ViewModels
 
         private void CalcCommand_Executed()
         {
-            RectItems.Clear();
-            foreach (var deviceTemplateViewModel in DeviceTemplateViewModels)
+            try
             {
-                for (int i = 0; i < deviceTemplateViewModel.Count; i++)
+                RectItems.Clear();
+                foreach (var deviceTemplateViewModel in DeviceTemplateViewModels)
                 {
-                    var deviceTemplate = deviceTemplateViewModel.Model;
-                    var device = new Device(deviceTemplate, new Point(), "Device");
-                    RectItems.Add(device);
+                    for (int i = 0; i < deviceTemplateViewModel.Count; i++)
+                    {
+                        var deviceTemplate = deviceTemplateViewModel.Model;
+                        var device = new Device(deviceTemplate, new Point(), "Device");
+                        RectItems.Add(device);
+                    }
                 }
+
+                var childRects = DeviceTemplateViewModels
+                    .SelectMany(vm => Enumerable.Range(0, vm.Count).Select(_ => new int[] { vm.Model.Width, vm.Model.Height }))
+                    .ToList();
+                var parentRects = GetParentRects();
+                var solutions = Solver.PlaceEquipment(childRects, parentRects);
+
+                // Размещение оборудования на свободных местах в зоне
+                if (solutions.Count > 0)
+                {
+                    for (int i = 0; i < RectItems.Count; i++)
+                    {
+                        var device = RectItems[i];
+                        var solution = solutions[i];
+                        device.Position = new Point(solution[0], solution[1]);
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("Не удалось разместить оборудование без пересечений в зоне.");
+                }
+
+                OnPropertyChanged(nameof(RectItems));
             }
-
-            var childRects = DeviceTemplateViewModels
-                .SelectMany(vm => Enumerable.Range(0, vm.Count).Select(_ => new int[] { vm.Model.Width, vm.Model.Height }))
-                .ToList();
-            var parentRects = GetParentRects();
-            var solutions = Solver.PlaceEquipment(childRects, parentRects);
-
-            if (solutions.Count > 0)
+            catch (InvalidOperationException ex)
             {
-                for (int i = 0; i < RectItems.Count; i++)
-                {
-                    var device = RectItems[i];
-                    var solution = solutions[i];
-                    device.Position = new Point(solution[0], solution[1]);
-                }
+                // Обработка ошибки размещения оборудования
+                // Отображение сообщения об ошибке пользователю
+                MessageBox.Show(ex.Message, "Ошибка размещения оборудования", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-            OnPropertyChanged(nameof(RectItems));
         }
+
+
 
 
         private List<int[]> GetParentRects()

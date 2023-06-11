@@ -1,5 +1,6 @@
-﻿using Google.OrTools.Sat;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace EquipmentLayout.Models
 {
@@ -7,69 +8,62 @@ namespace EquipmentLayout.Models
     {
         private class RectInfo
         {
-            public IntVar X1 { get; set; }
-            public IntVar Y1 { get; set; }
-            public IntVar X2 { get; set; }
-            public IntVar Y2 { get; set; }
-            public IntervalVar XInterval { get; set; }
-            public IntervalVar YInterval { get; set; }
+            public int X1 { get; set; }
+            public int Y1 { get; set; }
+            public int X2 { get; set; }
+            public int Y2 { get; set; }
             public bool IsExtra { get; set; }
         }
 
         public static List<int[]> PlaceEquipment(List<int[]> childRects, List<int[]> parentRects)
         {
-            CpModel model = new CpModel();
-            List<RectInfo> allVars = new List<RectInfo>();
-            List<IntervalVar> xIntervals = new List<IntervalVar>();
-            List<IntervalVar> yIntervals = new List<IntervalVar>();
-
-            int parentWidth = parentRects[0][0];
-            int parentHeight = parentRects[0][1];
+            List<int[]> solutions = new List<int[]>();
 
             foreach (var rect in childRects)
             {
                 int width = rect[0];
                 int height = rect[1];
+                int parentWidth = parentRects[0][0];
+                int parentHeight = parentRects[0][1];
 
-                IntVar x1Var = model.NewIntVar(0, parentWidth - width, $"x1_{width}_{height}");
-                IntVar x2Var = model.NewIntVar(width, parentWidth, $"x2_{width}_{height}");
-                IntervalVar xIntervalVar = model.NewIntervalVar(x1Var, width, x2Var, $"x_interval_{width}_{height}");
-
-                IntVar y1Var = model.NewIntVar(0, parentHeight - height, $"y1_{width}_{height}");
-                IntVar y2Var = model.NewIntVar(height, parentHeight, $"y2_{width}_{height}");
-                IntervalVar yIntervalVar = model.NewIntervalVar(y1Var, height, y2Var, $"y_interval_{width}_{height}");
-
-                xIntervals.Add(xIntervalVar);
-                yIntervals.Add(yIntervalVar);
-
-                allVars.Add(new RectInfo
+                if (width > parentWidth || height > parentHeight)
                 {
-                    X1 = x1Var,
-                    Y1 = y1Var,
-                    X2 = x2Var,
-                    Y2 = y2Var,
-                    XInterval = xIntervalVar,
-                    YInterval = yIntervalVar,
-                    IsExtra = false
-                });
-            }
+                    throw new InvalidOperationException("Размеры оборудования превышают размеры зоны.");
+                }
 
-            model.AddNoOverlap(xIntervals.ToArray());
-            model.AddNoOverlap(yIntervals.ToArray());
+                bool intersects;
+                int x = 0;
+                int y = 0;
 
-            CpSolver solver = new CpSolver();
-            CpSolverStatus status = solver.Solve(model);
-            List<int[]> solutions = new List<int[]>();
-
-            if (status == CpSolverStatus.Optimal)
-            {
-                foreach (var rect in allVars)
+                while (true)
                 {
-                    int x1 = (int)solver.Value(rect.X1);
-                    int x2 = (int)solver.Value(rect.X2);
-                    int y1 = (int)solver.Value(rect.Y1);
-                    int y2 = (int)solver.Value(rect.Y2);
-                    solutions.Add(new int[] { x1, y1, x2, y2 });
+                    // Проверяем на пересечение с ранее размещенными прямоугольниками
+                    intersects = solutions.Any(solution =>
+                    {
+                        int solutionX1 = solution[0];
+                        int solutionY1 = solution[1];
+                        int solutionX2 = solution[2];
+                        int solutionY2 = solution[3];
+
+                        return !(x + width <= solutionX1 || x >= solutionX2 || y + height <= solutionY1 || y >= solutionY2);
+                    });
+
+                    if (!intersects)
+                    {
+                        solutions.Add(new int[] { x, y, x + width, y + height });
+                        break;
+                    }
+
+                    x += width;
+                    if (x + width > parentWidth)
+                    {
+                        x = 0;
+                        y += height;
+                        if (y + height > parentHeight)
+                        {
+                            throw new InvalidOperationException("Не удалось разместить оборудование без пересечений в зоне.");
+                        }
+                    }
                 }
             }
 
