@@ -9,7 +9,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Shapes;
-using Google.OrTools.Sat;
 
 namespace EquipmentLayout.ViewModels
 {
@@ -146,6 +145,9 @@ namespace EquipmentLayout.ViewModels
 
         private void UpdateProperties()
         {
+            WidthTextBox = GetTextBoxByName("WidthTextBox");
+            HeightTextBox = GetTextBoxByName("HeightTextBox");
+
             var model = _selectedDeviceTemplate;
 
             if (model == null)
@@ -156,27 +158,27 @@ namespace EquipmentLayout.ViewModels
             }
 
             var properties = new List<Property<DeviceTemplateViewModel>>
-    {
-        new Property<DeviceTemplateViewModel>("Имя", model.Name, model,
-            (x, v) => x.Name = (string)v,
-            (x) => x.Name),
-
-       new Property<DeviceTemplateViewModel>( "Ширина", model.Width, model,
-            (x, v) =>
             {
-                x.Width = int.Parse(v.ToString());
-                model.Model.Width = x.Width; // Обновление ширины в выбранном шаблоне
-            },
-            (x) => x.Width),
+                new Property<DeviceTemplateViewModel>("Имя", model.Name, model,
+                    (x, v) => x.Name = (string)v,
+                    (x) => x.Name),
 
-        new Property<DeviceTemplateViewModel>( "Высота", model.Height, model,
-            (x, v) =>
-            {
-                x.Height = int.Parse(v.ToString());
-                model.Model.Height = x.Height; // Обновление высоты в выбранном шаблоне
-            },
-            (x) => x.Height)
-    };
+                new Property<DeviceTemplateViewModel>( "Ширина", model.Width, model,
+                    (x, v) =>
+                    {
+                        x.Width = int.Parse(v.ToString());
+                        model.Model.Width = x.Width; // Обновление ширины в выбранном шаблоне
+                    },
+                    (x) => x.Width),
+
+                new Property<DeviceTemplateViewModel>( "Высота", model.Height, model,
+                    (x, v) =>
+                    {
+                        x.Height = int.Parse(v.ToString());
+                        model.Model.Height = x.Height; // Обновление высоты в выбранном шаблоне
+                    },
+                    (x) => x.Height)
+            };
 
             Properties = new ObservableCollection<Property<DeviceTemplateViewModel>>(properties);
             OnPropertyChanged(nameof(Properties));
@@ -185,7 +187,6 @@ namespace EquipmentLayout.ViewModels
             WidthTextBox.Text = model.Width.ToString();
             HeightTextBox.Text = model.Height.ToString();
         }
-
 
         private void CalcCommand_Executed()
         {
@@ -220,7 +221,6 @@ namespace EquipmentLayout.ViewModels
         }
 
 
-
         private List<int[]> GetParentRects()
         {
             var parentRects = new List<int[]>();
@@ -247,9 +247,9 @@ namespace EquipmentLayout.ViewModels
                 DeviceTemplateViewModels.Add(vm_template2);
             }
 
-            UpdateProperties(); // Добавлено
-        }
+            UpdateProperties(); 
 
+        }
 
         private void AddObstacleCommand_Executed()
         {

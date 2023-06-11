@@ -23,22 +23,20 @@ namespace EquipmentLayout.Models
             List<IntervalVar> xIntervals = new List<IntervalVar>();
             List<IntervalVar> yIntervals = new List<IntervalVar>();
 
-            int parentWidth = parentRects[0][0]; 
-            int parentHeight = parentRects[0][1]; 
-
+            int parentWidth = parentRects[0][0];
+            int parentHeight = parentRects[0][1];
 
             foreach (var rect in childRects)
             {
                 int width = rect[0];
                 int height = rect[1];
-                int area = width * height;
 
-                IntVar x1Var = model.NewIntVar(0, parentWidth, $"x1_{width}_{height}");
-                IntVar x2Var = model.NewIntVar(0, parentWidth, $"x2_{width}_{height}");
+                IntVar x1Var = model.NewIntVar(0, parentWidth - width, $"x1_{width}_{height}");
+                IntVar x2Var = model.NewIntVar(width, parentWidth, $"x2_{width}_{height}");
                 IntervalVar xIntervalVar = model.NewIntervalVar(x1Var, width, x2Var, $"x_interval_{width}_{height}");
 
-                IntVar y1Var = model.NewIntVar(0, parentHeight, $"y1_{width}_{height}");
-                IntVar y2Var = model.NewIntVar(0, parentHeight, $"y2_{width}_{height}");
+                IntVar y1Var = model.NewIntVar(0, parentHeight - height, $"y1_{width}_{height}");
+                IntVar y2Var = model.NewIntVar(height, parentHeight, $"y2_{width}_{height}");
                 IntervalVar yIntervalVar = model.NewIntervalVar(y1Var, height, y2Var, $"y_interval_{width}_{height}");
 
                 xIntervals.Add(xIntervalVar);
@@ -55,7 +53,6 @@ namespace EquipmentLayout.Models
                     IsExtra = false
                 });
             }
-
 
             model.AddNoOverlap(xIntervals.ToArray());
             model.AddNoOverlap(yIntervals.ToArray());
@@ -78,6 +75,7 @@ namespace EquipmentLayout.Models
 
             return solutions;
         }
+
 
     }
 }
