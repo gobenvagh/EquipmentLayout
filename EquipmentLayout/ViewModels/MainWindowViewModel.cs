@@ -207,7 +207,7 @@ namespace EquipmentLayout.ViewModels
                     .SelectMany(vm => Enumerable.Range(0, vm.Count).Select(_ => new int[] { vm.Model.Width, vm.Model.Height }))
                     .ToList();
                 var parentRects = GetParentRects();
-                var solutions = Solver.PlaceEquipment(childRects, parentRects);
+                var solutions = Solver.PlaceEquipment(childRects, parentRects, Obstacles.ToList());
 
                 // Размещение оборудования на свободных местах в зоне
                 if (solutions.Count > 0)
@@ -233,9 +233,6 @@ namespace EquipmentLayout.ViewModels
                 MessageBox.Show(ex.Message, "Ошибка размещения оборудования", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-
-
 
         private List<int[]> GetParentRects()
         {
@@ -263,8 +260,7 @@ namespace EquipmentLayout.ViewModels
                 DeviceTemplateViewModels.Add(vm_template2);
             }
 
-            UpdateProperties(); 
-
+            UpdateProperties();
         }
 
         private void AddObstacleCommand_Executed()

@@ -21,8 +21,7 @@
                     </Label>
                 </StackPanel>
 
-                <DataGrid Height="100" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" 
-          ItemsSource="{Binding Path=Properties}">
+                <DataGrid Height="100" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" ItemsSource="{Binding Path=Properties}">
                 </DataGrid>
 
 
