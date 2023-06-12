@@ -27,6 +27,8 @@ namespace EquipmentLayout.Models
             this.Width = 100;
             this.Height = 100;
             this.Name = "Template";
+            WorkArea = new Area(0, 0, 0, 0, AreaType.WorkArea);
+            ServiceArea = new Area(0, 0, 0, 0, AreaType.ServiceArea);
             Count = 0;
 
         }
@@ -110,22 +112,25 @@ namespace EquipmentLayout.Models
         int Height { get; }
     }
 
-    public class Device : IRectItem
+    public class Device
     {
-        DeviceTemplate deviceTemplate;
-        public int Width { get => deviceTemplate.Width;}
-        public int Height { get => deviceTemplate.Height;}
+        DeviceTemplate _template;
+        public int Width { get => _template.Width;}
+        public int Height { get => _template.Height;}
 
         public int X { get; set; }
 
         public int Y { get; set; }
-        public string Name => deviceTemplate.Name;
+        public string Name => _template.Name;
+
+        public Area WorkArea => _template.WorkArea;
+        public Area ServiceArea => _template.ServiceArea;
 
         public Brush Color => new SolidColorBrush(System.Windows.Media.Colors.AliceBlue) { Opacity = 0 };
 
         protected Device(DeviceTemplate deviceTemplate, int X, int Y)
         {
-            this.deviceTemplate = deviceTemplate;
+            this._template = deviceTemplate;
         }
     }
 

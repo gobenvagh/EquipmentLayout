@@ -5,12 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 namespace EquipmentLayout.ViewModels
 {
-    public class DeviceViewModel : BaseViewModel
+    public class DeviceViewModel : BaseViewModel, IRectItem
     {
         Device _model;
+        public string Name => _model.Name;
 
         public int X 
         {
@@ -43,6 +45,12 @@ namespace EquipmentLayout.ViewModels
         {
             get => _model.Width;
         }
+
+        public AreaViewModel WorkArea => new AreaViewModel(_model.ServiceArea);
+
+        public AreaViewModel ServiceArea => new AreaViewModel(_model.ServiceArea);
+
+        public Brush Color => new SolidColorBrush(System.Windows.Media.Colors.AliceBlue) { Opacity = 0 };
 
         public DeviceViewModel(Device model)
         {

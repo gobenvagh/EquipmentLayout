@@ -29,13 +29,13 @@ namespace EquipmentLayout.ViewModels
 
         public ObservableCollection<IProperty> Properties { get; set; }
 
-        public ObservableCollection<Device> Devices { get; set; }
+        public ObservableCollection<DeviceViewModel> DeviceViewModels { get; set; }
 
         public DelegateCommand CalcCommand { get; }
         public DelegateCommand DeleteTemplateCommand { get; }
         public DelegateCommand AddObstacleCommand { get; }
         public DelegateCommand OpenTemplateEditorCommand { get; }
-        public ObservableCollectionItemsProvider<ObstacleViewModel, IRectItem> RectItemsProvider { get; }
+        public RectItemsProvider RectItemsProvider { get; }
         public DelegateCommand AddTemplateCommand { get; }
 
         private Rectangle _zone;
@@ -49,25 +49,6 @@ namespace EquipmentLayout.ViewModels
                 OnPropertyChanged(nameof(Zone));
             }
         }
-
-        public List<Device> InputItems
-        {
-            get
-            {
-                var devices = new List<Device>();
-                var factory = new DeviceFactory();
-                foreach (var temp in DeviceTemplateViewModels)
-                {
-                    for (int i = 0; i < temp.Count; i++)
-                    {
-                        var device = factory.GetDevice(new Point(), temp.Model);
-                        devices.Add(device);
-                    }
-                }
-                return devices;
-            }
-        }
-
 
         private ObstacleViewModel _selectedObstacle;
         public ObstacleViewModel SelectedObstacle
@@ -121,43 +102,19 @@ namespace EquipmentLayout.ViewModels
             }
         }
 
-        private void CalcCommand_Executed()
-        {
-            var csvWriter = new CsvDeviceSerializer();
-            csvWriter.Write(Zone, DeviceTemplateViewModels, ObstacleViewModels, "input.csv");
-
-            var process = new Process();
-            var path = "stock_cutter.exe";
-
-            process.Exited += ProcessExited;
-
-            process.StartInfo.FileName = path;
-            process.EnableRaisingEvents = true;
-            process.Start();
-
-        }
-
-        private void ProcessExited(object sender, EventArgs e)
-        {
-            var csvReader = new CsvDeviceDeserializer();
-            var devices = csvReader.Read("output.csv");
-
-            RectItems = new ObservableCollection<IRectItem>(devices);
-            OnPropertyChanged(nameof(RectItems));
-        }
-
         public MainWindowViewModel()
         {
             DeviceTemplateViewModels = new ObservableCollection<DeviceTemplateViewModel>();
             RectItems = new ObservableCollection<IRectItem>();
             ObstacleViewModels = new ObservableCollection<ObstacleViewModel>();
+            DeviceViewModels = new ObservableCollection<DeviceViewModel>();
 
             CalcCommand = new DelegateCommand(CalcCommand_Executed1);
             AddTemplateCommand = new DelegateCommand(AddTemplateCommand_Executed);
             DeleteTemplateCommand = new DelegateCommand(DeleteTemplateCommand_Executed);
             AddObstacleCommand = new DelegateCommand(AddObstacleCommand_Executed);
 
-            RectItemsProvider = new ObservableCollectionItemsProvider<ObstacleViewModel, IRectItem>(ObstacleViewModels, RectItems);
+            RectItemsProvider = new RectItemsProvider(DeviceViewModels, ObstacleViewModels, RectItems);
 
             Zone = new Rectangle()
             {
@@ -203,7 +160,8 @@ namespace EquipmentLayout.ViewModels
                     {
                         var deviceTemplate = deviceTemplateViewModel.Model;
                         var device = factory.GetDevice(new Point(), deviceTemplate, false);
-                        RectItems.Add(device);
+                        var deviceVm = new DeviceViewModel(device);
+                        RectItems.Add(deviceVm);
                     }
                 }
 
@@ -222,11 +180,13 @@ namespace EquipmentLayout.ViewModels
                 {
                     for (int i = 0; i < RectItems.Count(); i++)
                     {
-                        if (RectItems[i] is Device device) 
+                        if (RectItems[i] is DeviceViewModel device) 
                         {
                             var solution = solutions[i];
                             device.X = solution[0];
                             device.Y = solution[1];
+                            RectItems.Add(device.WorkArea);
+                            RectItems.Add(device.ServiceArea);
                         }
                     }
                 }
@@ -288,7 +248,7 @@ namespace EquipmentLayout.ViewModels
             if (this.SelectedDeviceTemplate != null)
                 this.DeviceTemplateViewModels.Remove(this.SelectedDeviceTemplate);
             else if (this.SelectedObstacle != null)
-                this.ObstacleViewModels.Remove(this.SelectedObstacle);
+                this.RectItems.Remove(this.SelectedObstacle);
 
         }
 
@@ -308,7 +268,7 @@ namespace EquipmentLayout.ViewModels
             else
                 obsVm = new ObstacleViewModel();
 
-            this.ObstacleViewModels.Add(obsVm);
+            this.RectItems.Add(obsVm);
             OnPropertyChanged(nameof(SelectedObstacle));
         }
 
@@ -317,6 +277,52 @@ namespace EquipmentLayout.ViewModels
     public class AreasProvider
     {
 
+    }
+
+    public class RectItemsProvider
+    {
+        private ObservableCollection<DeviceViewModel> _devices;
+        private ObservableCollection<ObstacleViewModel> _obstacles;
+        private ObservableCollection<IRectItem> _rectItems;
+        public RectItemsProvider(
+            ObservableCollection<DeviceViewModel> devices,
+            ObservableCollection<ObstacleViewModel> obsacles,
+            ObservableCollection<IRectItem> rectItems) 
+        { 
+            _devices = devices;
+            _obstacles = obsacles;
+            _rectItems = rectItems;
+            _rectItems.CollectionChanged += _rectItems_CollectionChanged;
+        }
+
+        private void _rectItems_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Reset:
+                    _devices.Clear();
+                    _obstacles.Clear();
+                    break;
+                case NotifyCollectionChangedAction.Add:
+                    {
+                        foreach (var item in e.NewItems.OfType<DeviceViewModel>())
+                        {
+                            _devices.Add(item);
+                        }
+                        foreach (var item in e.NewItems.OfType<ObstacleViewModel>())
+                            _obstacles.Add(item);
+                        break;
+                    }
+                case NotifyCollectionChangedAction.Remove:
+                    {
+                        foreach (var item in e.OldItems.OfType<DeviceViewModel>())
+                            _devices.Remove(item);
+                        foreach (var item in e.NewItems.OfType<ObstacleViewModel>())
+                            _obstacles.Remove(item);
+                        break;
+                    }
+            }
+        }
     }
 
     public class ObservableCollectionItemsProvider<S, T>

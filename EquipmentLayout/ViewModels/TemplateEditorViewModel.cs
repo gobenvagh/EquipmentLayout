@@ -24,7 +24,7 @@ namespace EquipmentLayout.ViewModels
             WorkAreaProperties = new ObservableCollection<IProperty>(builder.BuildPropertiesZone(template.WorkArea));
             ServiceAreaProperties = new ObservableCollection<IProperty>(builder.BuildPropertiesZone(template.ServiceArea));
             RectItems = new ObservableCollection<IRectItem>();
-            RectItems.Add(_template.GetDevice(0,0));
+            RectItems.Add(new DeviceViewModel(_template.GetDevice(0, 0)));
             RectItems.Add(_template.WorkArea);
             RectItems.Add(_template.ServiceArea);
         }
