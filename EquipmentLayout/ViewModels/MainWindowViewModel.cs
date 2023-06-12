@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 
 namespace EquipmentLayout.ViewModels
@@ -206,9 +207,13 @@ namespace EquipmentLayout.ViewModels
                     }
                 }
 
-                var childRects = DeviceTemplateViewModels
+
+
+                /*var childRects = DeviceTemplateViewModels
                     .SelectMany(vm => Enumerable.Range(0, vm.Count).Select(_ => new int[] { vm.Model.Width, vm.Model.Height }))
                     .ToList();
+*/
+                var childRects = GenChildRects(DeviceTemplateViewModels);
                 var parentRects = GetParentRects();
                 var solutions = Solver.PlaceEquipment(childRects, parentRects, obstacles);
 
@@ -241,6 +246,34 @@ namespace EquipmentLayout.ViewModels
                 // Отображение сообщения об ошибке пользователю
                 MessageBox.Show(ex.Message, "Ошибка размещения оборудования", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private List<int[]> GenChildRects(ObservableCollection<DeviceTemplateViewModel> deviceTemplateViewModels)
+        {
+            var childRects = new List<int[]>();
+            foreach (var temp in deviceTemplateViewModels)
+            {
+                for (int i = 0; i < temp.Count; i++)
+                {
+                    var model = temp.Model;
+
+                    var width = new int[] {
+                        model.Width,
+                        model.ServiceArea.Width + model.ServiceArea.X,
+                        model.WorkArea.Width + model.WorkArea.X
+                    }.Max();
+
+                    var height = new int[] {
+                        model.Height,
+                        model.ServiceArea.Height + model.ServiceArea.Y,
+                        model.WorkArea.Height + model.WorkArea.Y
+                    }.Max();
+
+                    childRects.Add(new int[] { width, height });
+                }
+            }
+
+            return childRects;
         }
 
         private List<int[]> GetParentRects()
