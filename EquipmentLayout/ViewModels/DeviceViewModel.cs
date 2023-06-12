@@ -43,7 +43,7 @@ namespace EquipmentLayout.ViewModels
 
         public int Height
         {
-            get => _model.Width;
+            get => _model.Height;
         }
 
         public AreaViewModel WorkArea => new AreaViewModel(_model.ServiceArea);

@@ -32,8 +32,6 @@ namespace EquipmentLayout.Models
             Count = 0;
 
         }
-
-
         public DeviceTemplate(int width, int height, string name)
         {
             this.Width = width;
