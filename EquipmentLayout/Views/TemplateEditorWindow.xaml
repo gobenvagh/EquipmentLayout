@@ -25,20 +25,20 @@
         
         <StackPanel>
             <DataGrid  
-                ItemsSource="{Binding Path=TemplateProperties , Mode=OneWay}">
+                ItemsSource="{Binding Path=TemplateProperties , Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
             </DataGrid>
 
             <DataGrid 
-                ItemsSource="{Binding Path=ServiceAreaProperties , Mode=OneWay}">
+                ItemsSource="{Binding Path=ServiceAreaProperties , Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
                 <DataGrid.CellStyle>
                     <Style TargetType="DataGridCell">
                         <Setter Property="Background" Value="LightGreen"></Setter>
                     </Style>
                 </DataGrid.CellStyle>
             </DataGrid>
-
+            
             <DataGrid 
-                ItemsSource="{Binding Path=WorkAreaProperties , Mode=OneWay}">
+                ItemsSource="{Binding Path=WorkAreaProperties , Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
                 <DataGrid.CellStyle>
                     <Style TargetType="DataGridCell">
                         <Setter Property="Background" Value="LightBlue"></Setter>

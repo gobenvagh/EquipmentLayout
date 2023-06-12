@@ -160,8 +160,8 @@ namespace EquipmentLayout.ViewModels
 
             Zone = new Rectangle()
             {
-                Width = 460,
-                Height = 330,
+                Width = 1100,
+                Height = 700,
             };
 
             var factory = new DeviceFactory();

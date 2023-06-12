@@ -57,7 +57,7 @@
                 </StackPanel>
 
                 <DataGrid Height="Auto" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" 
-                          ItemsSource="{Binding Path=Properties, Mode=TwoWay}">
+                          ItemsSource="{Binding Path=Properties, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                 </DataGrid>
 
                 <DockPanel  DockPanel.Dock="Bottom" Height="25">
@@ -69,7 +69,7 @@
                     x:Name="ListBoxDeviceTemplate"
                     DockPanel.Dock="Top" 
                     ItemsSource="{Binding Path=DeviceTemplateViewModels}" 
-                    SelectedItem="{Binding Path=SelectedDeviceTemplate, Mode=TwoWay}"
+                    SelectedItem="{Binding Path=SelectedDeviceTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     HorizontalAlignment="Stretch">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
@@ -98,7 +98,7 @@
                     GotFocus="ListBoxObstacle_GotFocus"
                     DockPanel.Dock="Top"
                     ItemsSource="{Binding Path=ObstacleViewModels}" 
-                    SelectedItem="{Binding Path=SelectedObstacle, Mode=TwoWay}"
+                    SelectedItem="{Binding Path=SelectedObstacle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     HorizontalAlignment="Stretch">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
@@ -112,12 +112,12 @@
 
 
                 <TextBlock VerticalAlignment="Center">Ширина</TextBlock>
-                <TextBox Text="{Binding Path=Zone.Width, Mode=TwoWay}" Margin="5" Width="100">
+                <TextBox Text="{Binding Path=Zone.Width, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5" Width="100">
                 </TextBox>
 
                 <TextBlock VerticalAlignment="Center">Высота</TextBlock>
 
-                <TextBox Text="{Binding Path=Zone.Height, Mode=TwoWay}" Margin="5" Width="100">
+                <TextBox Text="{Binding Path=Zone.Height, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5" Width="100">
                 </TextBox>
 
                 <Button Margin="5" Height="20" Width="60" Command="{Binding CalcCommand}" Content="Расчет">
