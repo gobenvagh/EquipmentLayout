@@ -191,11 +191,13 @@ namespace EquipmentLayout.ViewModels
                 {
                     for (int i = 0; i < RectItems.Count(); i++)
                     {
-                        if (RectItems[i] is DeviceViewModel device) 
+                        if (RectItems[i] is DeviceViewModel device)
                         {
                             var solution = solutions[i];
-                            device.X = solution[0];
-                            device.Y = solution[1];
+                            var xOffset = new int[]{ device.X, device.WorkArea.X, device.ServiceArea.X }.Min();
+                            var yOffset = new int[] { device.Y, device.WorkArea.Y, device.ServiceArea.Y }.Min();
+                            device.X = solution[0] - xOffset;
+                            device.Y = solution[1] - yOffset;
                             RectItems.Add(device.WorkArea);
                             RectItems.Add(device.ServiceArea);
                         }
@@ -226,25 +228,46 @@ namespace EquipmentLayout.ViewModels
             {
                 for (int i = 0; i < temp.Count; i++)
                 {
+                    var list = new List<int[]>();
                     var model = temp.Model;
+                    list.Add(new int[] { 0, 0, model.Width, model.Height });
+                    list.Add(new int[]
+                    {
+                        model.ServiceArea.X,
+                        model.ServiceArea.Y,
+                        model.ServiceArea.X + model.ServiceArea.Width,
+                        model.ServiceArea.Y +  model.ServiceArea.Height
+                    });
 
-                    var width = new int[] {
-                        model.Width,
-                        model.ServiceArea.Width + model.ServiceArea.X,
-                        model.WorkArea.Width + model.WorkArea.X
-                    }.Max();
+                    list.Add(new int[]
+                    {
+                        model.WorkArea.X,
+                        model.WorkArea.Y,
+                        model.WorkArea.X + model.WorkArea.Width,
+                        model.WorkArea.Y +  model.WorkArea.Height
+                    });
 
-                    var height = new int[] {
-                        model.Height,
-                        model.ServiceArea.Height + model.ServiceArea.Y,
-                        model.WorkArea.Height + model.WorkArea.Y
-                    }.Max();
+                    var device = OuterRect(list);
+
+
+
+                    var width =  device[2] - device[0];
+                    var height = device[3] - device[1];
 
                     childRects.Add(new int[] { width, height });
                 }
             }
 
             return childRects;
+        }
+
+        int[] OuterRect(List<int[]> rects)
+        {
+            var x0 = rects.Min(r => r[0]);
+            var y0 = rects.Min(r => r[1]);
+            var x1 = rects.Max(r => r[2]);
+            var y1 = rects.Max(r => r[3]);
+            return new int[] { x0, y0, x1, y1 };
         }
 
         private List<int[]> GetParentRects()
@@ -298,8 +321,8 @@ namespace EquipmentLayout.ViewModels
         public RectItemsProvider(
             ObservableCollection<DeviceViewModel> devices,
             ObservableCollection<ObstacleViewModel> obsacles,
-            ObservableCollection<IRectItem> rectItems) 
-        { 
+            ObservableCollection<IRectItem> rectItems)
+        {
             _devices = devices;
             _obstacles = obsacles;
             _rectItems = rectItems;
