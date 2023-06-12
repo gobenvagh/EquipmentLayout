@@ -83,6 +83,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ViewModels\AreaViewModel.cs" />
+    <Compile Include="ViewModels\TemplateEditorViewModel.cs" />
+    <Compile Include="Views\TemplateEditorWindow.xaml.cs">
+      <DependentUpon>TemplateEditorWindow.xaml</DependentUpon>
+    </Compile>
+    <Page Include="Views\Resources.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -93,6 +102,8 @@
     </Compile>
     <Compile Include="Infrastructure\BaseViewModel.cs" />
     <Compile Include="Infrastructure\DeviceTemplatePropertiesBuilder.cs" />
+    <Compile Include="Infrastructure\Property.cs" />
+    <Compile Include="ViewModels\DeviceViewModel.cs" />
     <Compile Include="Infrastructure\ObstaclePropertiesBuilder.cs" />
     <Compile Include="Models\CsvDeviceSerializer.cs" />
     <Compile Include="Models\CsvDeviceDeserializer.cs" />
@@ -106,6 +117,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\TemplateEditorWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models\Device.cs" />

@@ -1,0 +1,32 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid x:Key="canvasRes" >
+
+        <ItemsControl HorizontalAlignment="Left" VerticalAlignment="Top"  ItemsSource="{Binding RectItems}" Width="{Binding Path=Zone.Width, UpdateSourceTrigger=PropertyChanged}" Background="AliceBlue" Height="{Binding Path=Zone.Height, UpdateSourceTrigger=PropertyChanged}" Margin="10">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Canvas x:Name="canvas" > 
+                    </Canvas>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.RenderTransform>
+                            <TranslateTransform X="{Binding X, UpdateSourceTrigger=PropertyChanged}" Y="{Binding Y, UpdateSourceTrigger=PropertyChanged}">
+                            </TranslateTransform>
+                        </Grid.RenderTransform>
+                        <Rectangle VerticalAlignment="Top" HorizontalAlignment="Left"  Fill="{Binding Color}" Width="{Binding Width}" Height="{Binding Height}" Stroke="Black">
+                        </Rectangle>
+                        <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="{Binding Name}"></Label>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Rectangle Margin="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="{Binding Path=Zone.Width, UpdateSourceTrigger=PropertyChanged}" Height="{Binding Path=Zone.Height, UpdateSourceTrigger=PropertyChanged}" Stroke="Black"/>
+    </Grid>
+
+
+</ResourceDictionary>

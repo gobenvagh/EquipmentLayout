@@ -1,11 +1,14 @@
 ﻿using EquipmentLayout.Infrastructure;
 using EquipmentLayout.Models;
+using EquipmentLayout.Views;
+using Prism.Commands;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace EquipmentLayout.ViewModels
 {
@@ -13,8 +16,20 @@ namespace EquipmentLayout.ViewModels
     {
         private DeviceTemplate _model;
 
+        private DeviceFactory _factory;
+
+        public DelegateCommand OpenTemplateEditorCommand { get; }
+
         public DeviceTemplate Model => _model;
 
+
+        private void OpenTemplateEditorCommand_Executed()
+        {
+            var editor = new TemplateEditorWindow();
+            var vm = new TemplateEditorViewModel(this);
+            editor.DataContext = vm;
+            editor.Show();
+        }
 
         public int Width 
         { 
@@ -52,6 +67,16 @@ namespace EquipmentLayout.ViewModels
             }
         }
 
+
+        public AreaViewModel WorkArea { get; set; }
+
+        public AreaViewModel ServiceArea { get; set; }
+
+        public Device GetDevice(int x, int y)
+        {
+            return _factory.GetDevice(new Point(x, y), this._model, false);
+        }
+
         public DeviceTemplateViewModel Clone()
         {
             var cloneModel = this._model.Clone();
@@ -62,11 +87,19 @@ namespace EquipmentLayout.ViewModels
         public DeviceTemplateViewModel(DeviceTemplate model)
         {
             _model = model;
+            OpenTemplateEditorCommand = new DelegateCommand(OpenTemplateEditorCommand_Executed);
+            _factory = new DeviceFactory();
+            WorkArea = new AreaViewModel(_model.WorkArea);
+            ServiceArea = new AreaViewModel(_model.ServiceArea);
         }
 
         public DeviceTemplateViewModel()
         {
             _model = new DeviceTemplate();
+            OpenTemplateEditorCommand = new DelegateCommand(OpenTemplateEditorCommand_Executed);
+            _factory = new DeviceFactory();
+            WorkArea = new AreaViewModel(_model.WorkArea);
+            ServiceArea = new AreaViewModel(_model.ServiceArea);
         }
 
     }

@@ -1,6 +1,7 @@
 ﻿using EquipmentLayout.Infrastructure;
 using EquipmentLayout.Models;
 using System.ComponentModel;
+using System.Windows.Media;
 
 namespace EquipmentLayout.ViewModels
 {
@@ -9,6 +10,8 @@ namespace EquipmentLayout.ViewModels
         private Obstacle _model;
 
         public Obstacle Model => _model;
+
+        public Brush Color => new SolidColorBrush(System.Windows.Media.Colors.IndianRed);
 
 
         private string _name;

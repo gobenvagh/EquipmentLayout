@@ -6,6 +6,42 @@
         xmlns:local="clr-namespace:EquipmentLayout"
         mc:Ignorable="d"
         Title="MainWindow" Height="800" Width="1000">
+    
+    
+    <Window.Resources>
+
+        <Grid x:Key="canvasRes" >
+
+            <ItemsControl HorizontalAlignment="Left" VerticalAlignment="Top"  ItemsSource="{Binding RectItems}" Width="{Binding Path=Zone.Width, UpdateSourceTrigger=PropertyChanged}" Background="AliceBlue" Height="{Binding Path=Zone.Height, UpdateSourceTrigger=PropertyChanged}" Margin="10">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas x:Name="canvas">
+                        </Canvas>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.RenderTransform>
+                                <TranslateTransform X="{Binding X, UpdateSourceTrigger=PropertyChanged}" Y="{Binding Y, UpdateSourceTrigger=PropertyChanged}">
+                                </TranslateTransform>
+                            </Grid.RenderTransform>
+                            <Rectangle VerticalAlignment="Top" HorizontalAlignment="Left"  Fill="{Binding Color}" Width="{Binding Width}" Height="{Binding Height}" Stroke="Black">
+                            </Rectangle>
+                            <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="{Binding Name}"></Label>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Rectangle Margin="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="{Binding Path=Zone.Width, UpdateSourceTrigger=PropertyChanged}" Height="{Binding Path=Zone.Height, UpdateSourceTrigger=PropertyChanged}" Stroke="Black"/>
+        </Grid>
+
+
+    </Window.Resources>
+    
+    
+    
     <Grid>
         <DockPanel>
 
@@ -41,11 +77,11 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width ="160" />
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <Label Content="{Binding Path=Name}" Grid.Column="0"></Label>
-                                <TextBox Text="{Binding Path=Count}" HorizontalAlignment="Right" MinWidth="50" Grid.Column="1">
-
-                                </TextBox>
+                                <TextBox Text="{Binding Path=Count}" HorizontalAlignment="Right" MinWidth="50" Grid.Column="1"/>
+                                <Button Margin="20,0" Command="{Binding OpenTemplateEditorCommand}" Content="Редактировать" Grid.Column="2"></Button>
                             </Grid>
 
                         </DataTemplate>
@@ -87,33 +123,10 @@
                 <Button Margin="5" Height="20" Width="60" Command="{Binding CalcCommand}" Content="Расчет">
                 </Button>
             </StackPanel>
+            
+            <StaticResource ResourceKey="canvasRes" />
 
-
-            <Grid DockPanel.Dock="Right">
-
-                <ItemsControl HorizontalAlignment="Left" VerticalAlignment="Top"  ItemsSource="{Binding RectItems}" Width="{Binding Path=Zone.Width, UpdateSourceTrigger=PropertyChanged}" Background="AliceBlue" Height="{Binding Path=Zone.Height, UpdateSourceTrigger=PropertyChanged}" Margin="10">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <Canvas x:Name="canvas">
-                            </Canvas>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Rectangle Width="{Binding Width}" Height="{Binding Height}" Stroke="Black">
-                                <Rectangle.RenderTransform>
-                                    <TranslateTransform X="{Binding X, UpdateSourceTrigger=PropertyChanged}" Y="{Binding Y, UpdateSourceTrigger=PropertyChanged}">
-
-                                    </TranslateTransform>
-                                </Rectangle.RenderTransform>
-                            </Rectangle>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <Rectangle Margin="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="{Binding Path=Zone.Width, UpdateSourceTrigger=PropertyChanged}" Height="{Binding Path=Zone.Height, UpdateSourceTrigger=PropertyChanged}" Stroke="Black"/>
-            </Grid>
-
+           
 
 
         </DockPanel>

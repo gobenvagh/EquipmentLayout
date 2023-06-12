@@ -1,5 +1,6 @@
 ﻿using EquipmentLayout.Infrastructure;
 using EquipmentLayout.Models;
+using EquipmentLayout.Views;
 using Prism.Commands;
 using System;
 using System.Collections.Generic;
@@ -27,9 +28,12 @@ namespace EquipmentLayout.ViewModels
 
         public ObservableCollection<IProperty> Properties { get; set; }
 
+        public ObservableCollection<Device> Devices { get; set; }
+
         public DelegateCommand CalcCommand { get; }
         public DelegateCommand DeleteTemplateCommand { get; }
         public DelegateCommand AddObstacleCommand { get; }
+        public DelegateCommand OpenTemplateEditorCommand { get; }
         public ObservableCollectionItemsProvider<ObstacleViewModel, IRectItem> RectItemsProvider { get; }
         public DelegateCommand AddTemplateCommand { get; }
 
@@ -160,10 +164,6 @@ namespace EquipmentLayout.ViewModels
                 Height = 330,
             };
 
-            var ovm = new ObstacleViewModel();
-            ovm.Name = "Столб";
-            //ObstacleViewModels.Add(ovm);
-
             var factory = new DeviceFactory();
 
             var template = new DeviceTemplate(100, 100, "MyDevice");
@@ -186,6 +186,7 @@ namespace EquipmentLayout.ViewModels
             DeviceTemplateViewModels.Add(vm_template2);
 
         }
+
 
         private void CalcCommand_Executed1()
         {
@@ -251,7 +252,11 @@ namespace EquipmentLayout.ViewModels
 
         private void DeleteTemplateCommand_Executed()
         {
-            this.DeviceTemplateViewModels.Remove(this.SelectedDeviceTemplate);
+            if (this.SelectedDeviceTemplate != null)
+                this.DeviceTemplateViewModels.Remove(this.SelectedDeviceTemplate);
+            else if (this.SelectedObstacle != null)
+                this.ObstacleViewModels.Remove(this.SelectedObstacle);
+
         }
 
         private void AddTemplateCommand_Executed()
@@ -276,27 +281,9 @@ namespace EquipmentLayout.ViewModels
 
     }
 
-    public class Property<T> : IProperty
+    public class AreasProvider
     {
-        private T _model;
-        public string Name { get; }
-        public object Value
-        {
-            get => _getter(_model);
-            set => _setter(_model, value);
-        }
 
-        private Action<T, object> _setter;
-        private Func<T, object> _getter;
-
-        public Property(string name, object value, T model, Action<T, object> setter, Func<T, object> getter)
-        {
-            this._model = model;
-            this._setter = setter;
-            this._getter = getter;
-            Name = name;
-            Value = value;
-        }
     }
 
     public class ObservableCollectionItemsProvider<S, T>
@@ -324,7 +311,7 @@ namespace EquipmentLayout.ViewModels
                     }
                 case NotifyCollectionChangedAction.Remove:
                     {
-                        foreach (T item in e.NewItems.OfType<T>())
+                        foreach (T item in e.OldItems.OfType<T>())
                             _target.Remove(item);
                         break;
                     }
@@ -332,10 +319,4 @@ namespace EquipmentLayout.ViewModels
         }
     }
 
-
-    public interface IProperty
-    {
-        string Name { get; }
-        object Value { get; set; }
-    }
 }
