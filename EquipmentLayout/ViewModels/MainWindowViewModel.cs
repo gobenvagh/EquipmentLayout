@@ -118,8 +118,8 @@ namespace EquipmentLayout.ViewModels
 
             Zone = new Rectangle()
             {
-                Width = 1100,
-                Height = 700,
+                Width = 460,
+                Height = 330,
             };
 
             var factory = new DeviceFactory();
@@ -134,9 +134,20 @@ namespace EquipmentLayout.ViewModels
 
             var position = new Point(100, 50);
             var device1 = factory.GetDevice(position, template2);
+            factory.GetDevice(position, template2);
 
             var position2 = new Point(20, 30);
             var device2 = factory.GetDevice(position2, template);
+            factory.GetDevice(position2, template);
+            factory.GetDevice(position2, template);
+
+            var template3 = new DeviceTemplate(75, 90, "MyDevice3");
+            factory.GetDevice(position2, template3);
+            factory.GetDevice(position2, template3);
+            factory.GetDevice(position2, template3);
+            var vm_template3 = new DeviceTemplateViewModel(template3);
+
+            DeviceTemplateViewModels.Add(vm_template3);
 
             //RectItems.Add(device1);
             //RectItems.Add(device2);
@@ -317,7 +328,7 @@ namespace EquipmentLayout.ViewModels
                     {
                         foreach (var item in e.OldItems.OfType<DeviceViewModel>())
                             _devices.Remove(item);
-                        foreach (var item in e.NewItems.OfType<ObstacleViewModel>())
+                        foreach (var item in e.OldItems.OfType<ObstacleViewModel>())
                             _obstacles.Remove(item);
                         break;
                     }

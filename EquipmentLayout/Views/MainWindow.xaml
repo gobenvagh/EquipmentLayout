@@ -56,7 +56,7 @@
                     </Label>
                 </StackPanel>
 
-                <DataGrid Height="Auto" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" 
+                <DataGrid SelectionUnit="Cell" Height="Auto" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" 
                           ItemsSource="{Binding Path=Properties, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                 </DataGrid>
 
