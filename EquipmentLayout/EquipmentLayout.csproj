@@ -84,6 +84,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="ViewModels\AreaViewModel.cs" />
+    <Compile Include="ViewModels\DeviceAreaViewModel.cs" />
     <Compile Include="ViewModels\TemplateEditorViewModel.cs" />
     <Compile Include="Views\TemplateEditorWindow.xaml.cs">
       <DependentUpon>TemplateEditorWindow.xaml</DependentUpon>

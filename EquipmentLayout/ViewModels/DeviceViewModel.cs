@@ -14,7 +14,7 @@ namespace EquipmentLayout.ViewModels
         Device _model;
         public string Name => _model.Name;
 
-        public int X 
+        public int X
         {
             get => _model.X;
             set
@@ -46,15 +46,19 @@ namespace EquipmentLayout.ViewModels
             get => _model.Height;
         }
 
-        public AreaViewModel WorkArea => new AreaViewModel(_model.ServiceArea);
+        public DeviceAreaViewModel WorkArea { get; }
 
-        public AreaViewModel ServiceArea => new AreaViewModel(_model.ServiceArea);
+        public DeviceAreaViewModel ServiceArea { get; }
 
         public Brush Color => new SolidColorBrush(System.Windows.Media.Colors.AliceBlue) { Opacity = 0 };
 
         public DeviceViewModel(Device model)
         {
             _model = model;
+            WorkArea = new DeviceAreaViewModel(_model.WorkArea, this._model);
+            ServiceArea = new DeviceAreaViewModel(_model.ServiceArea, this._model);
+            PropertyChanged += WorkArea.DeviceSize_ChangedHandler;
+            PropertyChanged += ServiceArea.DeviceSize_ChangedHandler;
         }
     }
 }
