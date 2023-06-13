@@ -182,16 +182,17 @@ namespace EquipmentLayout.ViewModels
                     .SelectMany(vm => Enumerable.Range(0, vm.Count).Select(_ => new int[] { vm.Model.Width, vm.Model.Height }))
                     .ToList();
 */
-                var childRects = GenChildRects(DeviceTemplateViewModels);
                 var parentRects = GetParentRects();
-                var solutions = Solver.PlaceEquipment(childRects, parentRects, obstacles);
+                var solutions = new Solver().PlaceEquipment(DeviceTemplateViewModels.ToList(), parentRects, obstacles);
+
+                var rectItems = new List<IRectItem>(RectItems.OrderByDescending(x => x.Width + x.Height));
 
                 // Размещение оборудования на свободных местах в зоне
                 if (solutions.Count > 0)
                 {
-                    for (int i = 0; i < RectItems.Count(); i++)
+                    for (int i = 0; i < rectItems.Count(); i++)
                     {
-                        if (RectItems[i] is DeviceViewModel device)
+                        if (rectItems[i] is DeviceViewModel device)
                         {
                             var solution = solutions[i];
                             var xOffset = new int[]{ device.X, device.WorkArea.X, device.ServiceArea.X }.Min();
@@ -221,54 +222,8 @@ namespace EquipmentLayout.ViewModels
             }
         }
 
-        private List<int[]> GenChildRects(ObservableCollection<DeviceTemplateViewModel> deviceTemplateViewModels)
-        {
-            var childRects = new List<int[]>();
-            foreach (var temp in deviceTemplateViewModels)
-            {
-                for (int i = 0; i < temp.Count; i++)
-                {
-                    var list = new List<int[]>();
-                    var model = temp.Model;
-                    list.Add(new int[] { 0, 0, model.Width, model.Height });
-                    list.Add(new int[]
-                    {
-                        model.ServiceArea.X,
-                        model.ServiceArea.Y,
-                        model.ServiceArea.X + model.ServiceArea.Width,
-                        model.ServiceArea.Y +  model.ServiceArea.Height
-                    });
+      
 
-                    list.Add(new int[]
-                    {
-                        model.WorkArea.X,
-                        model.WorkArea.Y,
-                        model.WorkArea.X + model.WorkArea.Width,
-                        model.WorkArea.Y +  model.WorkArea.Height
-                    });
-
-                    var device = OuterRect(list);
-
-
-
-                    var width =  device[2] - device[0];
-                    var height = device[3] - device[1];
-
-                    childRects.Add(new int[] { width, height });
-                }
-            }
-
-            return childRects;
-        }
-
-        int[] OuterRect(List<int[]> rects)
-        {
-            var x0 = rects.Min(r => r[0]);
-            var y0 = rects.Min(r => r[1]);
-            var x1 = rects.Max(r => r[2]);
-            var y1 = rects.Max(r => r[3]);
-            return new int[] { x0, y0, x1, y1 };
-        }
 
         private List<int[]> GetParentRects()
         {
