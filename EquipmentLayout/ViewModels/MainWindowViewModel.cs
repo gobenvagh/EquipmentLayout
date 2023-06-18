@@ -159,9 +159,9 @@ namespace EquipmentLayout.ViewModels
 
         private void CalcCommand_Executed1()
         {
+            var obstaclesVm = this.ObstacleViewModels.ToList();
             try
             {
-                var obstaclesVm = this.ObstacleViewModels;
                 var obstacles = obstaclesVm.Select(x => x.Model).ToList();
                 RectItems.Clear();
                 var factory = new DeviceFactory();
@@ -218,7 +218,10 @@ namespace EquipmentLayout.ViewModels
             {
                 // Обработка ошибки размещения оборудования
                 // Отображение сообщения об ошибке пользователю
+
                 MessageBox.Show(ex.Message, "Ошибка размещения оборудования", MessageBoxButton.OK, MessageBoxImage.Error);
+                foreach (var ob in obstaclesVm)
+                    RectItems.Add(ob);
             }
         }
 
