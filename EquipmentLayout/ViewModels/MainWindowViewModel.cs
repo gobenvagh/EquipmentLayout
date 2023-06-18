@@ -208,7 +208,6 @@ namespace EquipmentLayout.ViewModels
                 {
                     throw new InvalidOperationException("Не удалось разместить оборудование без пересечений в зоне.");
                 }
-
                 foreach (var ob in obstaclesVm)
                     RectItems.Add(ob);
 

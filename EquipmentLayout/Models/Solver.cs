@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Media.Media3D;
@@ -85,9 +86,9 @@ namespace EquipmentLayout.Models
             public RectInfo(int width, int height, int x, int y)
             {
                 LT = new Corner(x, y);
-                RT = new Corner(width, y);
-                LB = new Corner(x, height);
-                RB = new Corner(width, height);
+                RT = new Corner(x + width, y);
+                LB = new Corner(x, y + height);
+                RB = new Corner(x + width, y +height);
             }
         }
 
@@ -154,6 +155,32 @@ namespace EquipmentLayout.Models
             return new int[] { x0, y0, x1, y1 };
         }
 
+        RectInfo GetPhantomDevice(int x, int y)
+        {
+            return new RectInfo(0, 0, x, y);
+        }
+
+        RectInfo GetPhantomDevice(Corner c)
+        {
+            return GetPhantomDevice(c.X, c.Y);
+        }
+
+        Corner TopCornerProjection(Corner a)
+        {
+            var device = _devices.Where(d => d.LT.X < a.X && d.RB.X > a.X)?.OrderBy(d => d.RB.Y)?.LastOrDefault();
+            if (device is null)
+                return new Corner(a.X, 0);
+            return new Corner(a.X, device.RB.Y);
+        }
+
+        Corner LeftCornerProjection(Corner a)
+        {
+            var device = _devices.Where(d => d.LT.Y < a.Y && d.RB.Y > a.Y)?.OrderBy(d => d.RB.X)?.LastOrDefault();
+            if (device is null)
+                return new Corner(0, a.Y);
+            return new Corner(device.RB.X, a.Y);
+        }
+
         public List<int[]> PlaceEquipment(List<DeviceTemplateViewModel> devices, List<int[]> parentRects, List<Obstacle> obstacles)
         {
             _devices = new List<RectInfo>();
@@ -161,17 +188,25 @@ namespace EquipmentLayout.Models
             _obsts = obstacles.Select(o => new RectInfo(o.Width, o.Height, o.X, o.Y)).ToList();
             _devices.AddRange(_obsts);
 
+            var phantomDevices = new List<RectInfo>();
+            phantomDevices.Add(GetPhantomDevice(0, 0));
+
+            phantomDevices.AddRange(_obsts.Select(o => GetPhantomDevice(LeftCornerProjection(o.LT))));
+            phantomDevices.AddRange(_obsts.Select(o => GetPhantomDevice(TopCornerProjection(o.LT))));
+
+            _devices.AddRange(phantomDevices);
+
             var parentRect = parentRects[0];
             foreach (var rect in childRects.OrderByDescending(r => r.Width + r.Height))
             {
 
                 var device = rect;
-                bool isSet = false;
+                var isSet = SetType.CanSet;
                 if (_devices.Count() == 0)
                 {
                     device.SetOnCorner(new Corner(0,0));
                     isSet = IsCanSet(device, parentRect);
-                    if (isSet)
+                    if (isSet == SetType.CanSet)
                     {
                         _devices.Add(device);
                         continue;
@@ -183,14 +218,14 @@ namespace EquipmentLayout.Models
                 {
                     device.SetOnCorner(dev.RT);
                     isSet = IsCanSet(device, parentRect);
-                    if (isSet)
+                    if (isSet == SetType.CanSet)
                     {
                         dev.RT.IsFree = false;
                         break;
                     }
                 }
 
-                if (isSet)
+                if (isSet == SetType.CanSet)
                 {
                     _devices.Add(device);
                     continue;
@@ -200,14 +235,14 @@ namespace EquipmentLayout.Models
                 {
                     device.SetOnCorner(dev.LB);
                     isSet = IsCanSet(device, parentRect);
-                    if (isSet)
+                    if (isSet == SetType.CanSet )
                     {
                         dev.LB.IsFree = false;
                         break;
                     }
                 }
 
-                if (isSet)
+                if (isSet == SetType.CanSet)
                 {
                     _devices.Add(device);
                     continue;
@@ -217,7 +252,7 @@ namespace EquipmentLayout.Models
                 {
                     device.SetOnCorner(dev.RB);
                     isSet = IsCanSet(device, parentRect);
-                    if (isSet)
+                    if (isSet == SetType.CanSet)
                     {
                         dev.RB.IsFree = false;
                         break;
@@ -225,13 +260,13 @@ namespace EquipmentLayout.Models
                 }
 
 
-                if (isSet)
+                if (isSet == SetType.CanSet)
                 {
                     _devices.Add(device);
                     continue;
                 }
 
-                if (!isSet)
+                if (isSet != SetType.CanSet)
                 {
                     throw new InvalidOperationException("(((");
                 }
@@ -239,28 +274,40 @@ namespace EquipmentLayout.Models
             }
 
             _devices.RemoveAll(d=>_obsts.Contains(d));  
+            _devices.RemoveAll(d=> phantomDevices.Contains(d));  
 
             return _devices.Select(x=>x.ToArray()).ToList();
         }
 
-        private bool IsCanSet(RectInfo device, int[] parentRect)
+        enum SetType
         {
-            bool intersects = false;
+            CanSet,
+            ObstIntersect,
+            DeviceIntesect,
+            NotInParent
+        }
 
-            foreach (var set in _devices)
-            {
-                intersects |= IsIntersect(device, set);
-            }
-
+        private SetType IsCanSet(RectInfo device, int[] parentRect)
+        {
             // Проверяем на пересечение с препятствиями
             foreach (var obst in _obsts)
             {
-                intersects |= IsIntersect(device, obst);
+                if (IsIntersect(device, obst))
+                    return SetType.ObstIntersect;
+            }
+            
+            foreach (var set in _devices)
+            {
+                if(set.Width == 0 || set.Height == 0)
+                    continue;
+                if (IsIntersect(device, set))
+                    return SetType.DeviceIntesect;
             }
 
-            intersects |= !IsNotInParent(device, parentRect);
+            if (!IsNotInParent(device, parentRect))
+                return SetType.NotInParent;
 
-            return !intersects;
+            return SetType.CanSet;
         }
 
         private bool IsNotInParent(RectInfo device, int[] parentRect)
