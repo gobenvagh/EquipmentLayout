@@ -158,17 +158,17 @@ namespace EquipmentLayout.Models
         {
             _devices = new List<RectInfo>();
             var childRects = GenChildRects(devices);
-            bool isFirst = true;
             _obsts = obstacles.Select(o => new RectInfo(o.Width, o.Height, o.X, o.Y)).ToList();
+            _devices.AddRange(_obsts);
+
             var parentRect = parentRects[0];
             foreach (var rect in childRects.OrderByDescending(r => r.Width + r.Height))
             {
 
                 var device = rect;
                 bool isSet = false;
-                if (isFirst)
+                if (_devices.Count() == 0)
                 {
-                    isFirst= false;
                     device.SetOnCorner(new Corner(0,0));
                     isSet = IsCanSet(device, parentRect);
                     if (isSet)
@@ -238,6 +238,7 @@ namespace EquipmentLayout.Models
 
             }
 
+            _devices.RemoveAll(d=>_obsts.Contains(d));  
 
             return _devices.Select(x=>x.ToArray()).ToList();
         }
