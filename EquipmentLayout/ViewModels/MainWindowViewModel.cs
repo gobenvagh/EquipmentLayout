@@ -2,6 +2,7 @@
 using EquipmentLayout.Infrastructure;
 using EquipmentLayout.Models;
 using EquipmentLayout.Views;
+using Microsoft.Win32;
 using Prism.Commands;
 using System;
 using System.Collections;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -35,6 +37,7 @@ namespace EquipmentLayout.ViewModels
 
         public ObservableCollection<IProperty> Properties { get; set; }
 
+        public DelegateCommand SaveCommand{ get; }
         public DelegateCommand CalcCommand { get; }
         public DelegateCommand DeleteTemplateCommand { get; }
         public DelegateCommand AddObstacleCommand { get; }
@@ -139,6 +142,7 @@ namespace EquipmentLayout.ViewModels
 
             Zones.Add(zone2);
 
+            SaveCommand = new DelegateCommand(SaveCommand_Executed);
             CalcCommand = new DelegateCommand(CalcCommand_Executed1);
             AddTemplateCommand = new DelegateCommand(AddTemplateCommand_Executed);
             DeleteTemplateCommand = new DelegateCommand(DeleteTemplateCommand_Executed);
@@ -148,6 +152,22 @@ namespace EquipmentLayout.ViewModels
             RenameZone = new DelegateCommand(RenameZone_Executed);
 
             InicializeDefaultState();
+        }
+
+        private void SaveCommand_Executed()            
+        {
+            var dialog = new SaveFileDialog();
+            dialog.DefaultExt = ".xlsx"; // Установка расширения файла по умолчанию
+            dialog.AddExtension = true; // Добавление расширения, если не указано пользователем
+
+            if (dialog.ShowDialog() == true)
+            {
+                var fileName = dialog.FileName;
+                var devices = Zones.SelectMany(z => z.DeviceViewModels.Select(d => d.Model)).ToList();
+                new ExcelExporter().ExportToExel(Zones.ToList(), DeviceTemplateViewModels.Select(d=>d.Model).ToList(), fileName);
+            }
+
+
         }
 
         private void AddZone_Executed()

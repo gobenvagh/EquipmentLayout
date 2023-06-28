@@ -40,11 +40,21 @@
 
 
     </Window.Resources>
-    
-    
-    
+
+
+
     <Grid>
+
         <DockPanel>
+
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="Файл">
+                    <MenuItem Header="Открыть"/>
+                    <MenuItem Header="Сохранить" Command="{Binding SaveCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="_Выход"/>
+                </MenuItem>
+            </Menu>
 
             <DockPanel Margin="10" DockPanel.Dock="Left">
                 <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
