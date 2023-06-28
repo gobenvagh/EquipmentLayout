@@ -3,6 +3,7 @@ using EquipmentLayout.Models;
 using EquipmentLayout.Views;
 using Prism.Commands;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -156,6 +157,13 @@ namespace EquipmentLayout.ViewModels
 
         }
 
+        private string GroupToStr(IEnumerable<Device> group)
+        {
+            var count = group.Count();
+            var frst = group.FirstOrDefault();
+            var tmp = frst.Template.Name;
+            return $"Кол-во: {count}, тип: {tmp}, ширина: {frst.Width}, длина: {frst.Height}";
+        }
 
         private void CalcCommand_Executed1()
         {
@@ -165,14 +173,16 @@ namespace EquipmentLayout.ViewModels
                 var obstacles = obstaclesVm.Select(x => x.Model).ToList();
                 RectItems.Clear();
                 var factory = new DeviceFactory();
+                var devices = new List<Device>();
                 foreach (var deviceTemplateViewModel in DeviceTemplateViewModels)
                 {
                     for (int i = 0; i < deviceTemplateViewModel.Count; i++)
                     {
                         var deviceTemplate = deviceTemplateViewModel.Model;
                         var device = factory.GetDevice(new Point(), deviceTemplate, false);
-                        var deviceVm = new DeviceViewModel(device);
-                        RectItems.Add(deviceVm);
+                        devices.Add(device);
+                        //var deviceVm = new DeviceViewModel(device);
+                        //RectItems.Add(deviceVm);
                     }
                 }
 
@@ -183,25 +193,36 @@ namespace EquipmentLayout.ViewModels
                     .ToList();
 */
                 var parentRects = GetParentRects();
-                var solutions = new Solver().PlaceEquipment(DeviceTemplateViewModels.ToList(), parentRects, obstacles);
+                var solutions = new Solver().PlaceEquipment(devices, parentRects, obstacles);
 
-                var rectItems = new List<IRectItem>(RectItems.OrderByDescending(x => x.Width + x.Height));
+                var rectItems = new List<IRectItem>(RectItems);
+
+
+                var notSolvedDevices = devices.Where(d=>!solutions.Contains(d)).ToList();
+                if (notSolvedDevices.Any())
+                {
+                    string txt = notSolvedDevices
+                        .GroupBy(d => d.Template)
+                        .Select(g =>
+                        GroupToStr(g))
+                        .Aggregate((l, r) => l + '\n' + r);
+                    MessageBox.Show(txt, "Не удалось расставить устройства");
+                }
+                        
 
                 // Размещение оборудования на свободных местах в зоне
                 if (solutions.Count > 0)
                 {
-                    for (int i = 0; i < rectItems.Count(); i++)
+                    for (int i = 0; i < solutions.Count(); i++)
                     {
-                        if (rectItems[i] is DeviceViewModel device)
-                        {
-                            var solution = solutions[i];
-                            var xOffset = new int[]{ device.X, device.WorkArea.X, device.ServiceArea.X }.Min();
-                            var yOffset = new int[] { device.Y, device.WorkArea.Y, device.ServiceArea.Y }.Min();
-                            device.X = solution[0] - xOffset;
-                            device.Y = solution[1] - yOffset;
-                            RectItems.Add(device.WorkArea);
-                            RectItems.Add(device.ServiceArea);
-                        }
+                        //var device = rectItems.OfType<DeviceViewModel>().FirstOrDefault(vm => vm.Model == solutions[i]);
+                        var device = new DeviceViewModel(solutions[i]);
+
+                        var solution = solutions[i];
+
+                        RectItems.Add(device);
+                        RectItems.Add(device.WorkArea);
+                        RectItems.Add(device.ServiceArea);
                     }
                 }
                 else
@@ -224,7 +245,7 @@ namespace EquipmentLayout.ViewModels
             }
         }
 
-      
+
 
 
         private List<int[]> GetParentRects()

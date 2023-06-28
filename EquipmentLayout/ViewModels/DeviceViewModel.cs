@@ -13,7 +13,7 @@ namespace EquipmentLayout.ViewModels
     {
         Device _model;
         public string Name => _model.Name;
-
+        public Device Model => _model;
         public int X
         {
             get => _model.X;

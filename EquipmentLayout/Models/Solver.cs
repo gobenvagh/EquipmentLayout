@@ -7,92 +7,96 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 
 namespace EquipmentLayout.Models
 {
+
+    public class Corner
+    {
+        public int X;
+        public int Y;
+        public bool IsFree;
+        public Corner(int x, int y)
+        {
+            X = x;
+            Y = y;
+            IsFree = true;
+        }
+    }
+
+    public class RectInfo
+    {
+        public DeviceTemplateViewModel Model { get; set; }
+
+        public Corner LT;
+        public Corner RT;
+        public Corner LB;
+        public Corner RB;
+
+        public int Width => RB.X - LT.X;
+
+        public int Height => RB.Y - LT.Y;
+
+        public int[] ToArray()
+        {
+            return new int[] { LT.X, LT.Y, Width, Height };
+        }
+
+        public Rect ToRect()
+        {
+            return new Rect()
+            {
+                X = this.LT.X,
+                Y = this.LT.Y,
+                Height = this.Height,
+                Width = this.Width,
+            };
+        }
+
+        public void SetOnCorner(Corner corner)
+        {
+            var height = Height;
+            var width = Width;
+
+            LT.X = corner.X;
+            LT.Y = corner.Y;
+
+            LB.X = corner.X;
+            LB.Y = corner.Y + height;
+
+            RB.X = corner.X + width;
+            RB.Y = corner.Y + height;
+
+            RT.X = corner.X + width;
+            RT.Y = corner.Y;
+
+        }
+
+        public RectInfo(int width, int height)
+        {
+            LT = new Corner(0, 0);
+            RT = new Corner(width, 0);
+            LB = new Corner(0, height);
+            RB = new Corner(width, height);
+        }
+
+
+        public RectInfo(int width, int height, int x, int y)
+        {
+            LT = new Corner(x, y);
+            RT = new Corner(x + width, y);
+            LB = new Corner(x, y + height);
+            RB = new Corner(x + width, y + height);
+        }
+    }
+
+
+
     internal class Solver
     {
-        private class Corner
-        {
-            public int X;
-            public int Y;
-            public bool IsFree;
-            public Corner(int x, int y)
-            {
-                X = x;
-                Y = y;
-                IsFree = true;
-            }
-        }
-
-        private class RectInfo
-        {
-            public DeviceTemplateViewModel Model { get; set; }
-
-            public Corner LT;
-            public Corner RT;
-            public Corner LB;
-            public Corner RB;
-
-            public int Width => RB.X - LT.X;
-
-            public int Height => RB.Y - LT.Y;
-
-            public int[] ToArray()
-            {
-                return new int[] { LT.X, LT.Y, Width, Height };
-            }
-
-            public Rect ToRect()
-            {
-                return new Rect()
-                {
-                    X = this.LT.X,
-                    Y = this.LT.Y,
-                    Height = this.Height,
-                    Width = this.Width,
-                };
-            }
-
-            public void SetOnCorner(Corner corner)
-            {
-                var height = Height;
-                var width = Width;
-
-                LT.X = corner.X;
-                LT.Y = corner.Y;
-
-                LB.X = corner.X;
-                LB.Y = corner.Y + height;
-
-                RB.X = corner.X + width;
-                RB.Y = corner.Y + height;
-
-                RT.X = corner.X + width;
-                RT.Y = corner.Y;
-
-            }
-
-            public RectInfo(int width, int height)
-            {
-                LT = new Corner(0, 0);
-                RT = new Corner(width, 0);
-                LB = new Corner(0, height);
-                RB = new Corner(width, height);
-            }
-
-
-            public RectInfo(int width, int height, int x, int y)
-            {
-                LT = new Corner(x, y);
-                RT = new Corner(x + width, y);
-                LB = new Corner(x, y + height);
-                RB = new Corner(x + width, y + height);
-            }
-        }
-
         List<RectInfo> _devices;
         List<RectInfo> _obsts;
 
@@ -103,6 +107,33 @@ namespace EquipmentLayout.Models
             leftR.Intersect(rightR);
 
             return !(leftR == Rect.Empty || leftR.Width == 0 || leftR.Height == 0);
+        }
+
+        private RectInfo GenChildRect(Device model)
+        {
+            var list = new List<int[]>();
+            list.Add(new int[] { 0, 0, model.Width, model.Height });
+            list.Add(new int[]
+            {
+                        model.ServiceArea.X,
+                        model.ServiceArea.Y,
+                        model.ServiceArea.X + model.ServiceArea.Width,
+                        model.ServiceArea.Y +  model.ServiceArea.Height
+            });
+
+            list.Add(new int[]
+            {
+                        model.WorkArea.X,
+                        model.WorkArea.Y,
+                        model.WorkArea.X + model.WorkArea.Width,
+                        model.WorkArea.Y +  model.WorkArea.Height
+            });
+
+            var device = OuterRect(list);
+            var width = device[2] - device[0];
+            var height = device[3] - device[1];
+
+            return new RectInfo(width, height);
         }
 
 
@@ -193,10 +224,15 @@ namespace EquipmentLayout.Models
             return isSet;
         }
 
-        public List<int[]> PlaceEquipment(List<DeviceTemplateViewModel> devices, List<int[]> parentRects, List<Obstacle> obstacles)
+        public List<Device> PlaceEquipment(List<Device> devices, List<int[]> parentRects, List<Obstacle> obstacles)
         {
             _devices = new List<RectInfo>();
-            var childRects = GenChildRects(devices);
+            //var childRects = GenChildRects(devices);
+
+            var rectMap = devices.ToDictionary(i => GenChildRect(i));
+
+            var childRects = rectMap.Keys;
+
             _obsts = obstacles.Select(o => new RectInfo(o.Width, o.Height, o.X, o.Y)).ToList();
             _devices.AddRange(_obsts);
 
@@ -211,6 +247,8 @@ namespace EquipmentLayout.Models
             _devices.AddRange(phantomDevices);
 
             _devices = _devices.OrderBy(x => x.LT.X).OrderBy(y => y.LT.Y).ToList();
+
+            var notSolvedDevices = new List<RectInfo>();
 
             var parentRect = parentRects[0];
             foreach (var rect in childRects.OrderByDescending(r => r.Width + r.Height))
@@ -263,7 +301,7 @@ namespace EquipmentLayout.Models
 
                 if (isSet != SetType.CanSet)
                 {
-                    throw new InvalidOperationException("(((");
+                    notSolvedDevices.Add(rect);
                 }
 
             }
@@ -271,8 +309,24 @@ namespace EquipmentLayout.Models
             _devices.RemoveAll(d => _obsts.Contains(d));
             _devices.RemoveAll(d => phantomDevices.Contains(d));
 
-            var result = childRects.Where(r=>_devices.Contains(r)).ToList();
-            return result.Select(x => x.ToArray()).ToList();
+            var result = new List<Device>();
+            foreach(var pair in rectMap)
+            {
+                var rectInfo = pair.Key;
+                var device = pair.Value;
+                if (notSolvedDevices.Contains(rectInfo))
+                    continue;
+
+                var xOffset = new int[] { device.ServiceArea.X, device.WorkArea.X }.Min();
+                var yOffset = new int[] { device.ServiceArea.Y, device.WorkArea.Y }.Min();
+
+                device.X = rectInfo.LT.X - xOffset;
+                device.Y = rectInfo.LT.Y - yOffset;
+                result.Add(device);
+            }
+            
+
+            return result;
         }
 
         enum SetType

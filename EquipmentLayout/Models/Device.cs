@@ -113,6 +113,8 @@ namespace EquipmentLayout.Models
     public class Device
     {
         DeviceTemplate _template;
+        
+        public DeviceTemplate Template => _template;
         public int Width { get => _template.Width;}
         public int Height { get => _template.Height;}
 

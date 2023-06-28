@@ -19,6 +19,7 @@
                         </Canvas>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
+               
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -123,7 +124,7 @@
                 <Button Margin="5" Height="20" Width="60" Command="{Binding CalcCommand}" Content="Расчет">
                 </Button>
             </StackPanel>
-            
+
             <StaticResource ResourceKey="canvasRes" />
 
            
