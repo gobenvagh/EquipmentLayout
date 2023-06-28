@@ -199,15 +199,7 @@ namespace EquipmentLayout.ViewModels
 
 
                 var notSolvedDevices = devices.Where(d=>!solutions.Contains(d)).ToList();
-                if (notSolvedDevices.Any())
-                {
-                    string txt = notSolvedDevices
-                        .GroupBy(d => d.Template)
-                        .Select(g =>
-                        GroupToStr(g))
-                        .Aggregate((l, r) => l + '\n' + r);
-                    MessageBox.Show(txt, "Не удалось расставить устройства");
-                }
+
                         
 
                 // Размещение оборудования на свободных местах в зоне
@@ -233,6 +225,17 @@ namespace EquipmentLayout.ViewModels
                     RectItems.Add(ob);
 
                 OnPropertyChanged(nameof(RectItems));
+
+                if (notSolvedDevices.Any())
+                {
+                    string txt = notSolvedDevices
+                        .GroupBy(d => d.Template)
+                        .Select(g =>
+                        GroupToStr(g))
+                        .Aggregate((l, r) => l + '\n' + r);
+                    MessageBox.Show(txt, "Не удалось расставить устройства");
+                }
+
             }
             catch (InvalidOperationException ex)
             {
