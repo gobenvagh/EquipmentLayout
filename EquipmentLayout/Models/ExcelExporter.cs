@@ -19,9 +19,9 @@ namespace EquipmentLayout.Models
         {
             var workbook = new XSSFWorkbook();
             ExportZoneToExcel(zones, filePath, workbook);
-            ExportObstaclesToExcel(zones.SelectMany(z=>z.ObstacleViewModels.Select(o=>o.Model)).ToList(), filePath, workbook);
+            ExportObstaclesToExcel(zones, filePath, workbook);
             ExportTemplatesToExcel(templates, filePath, workbook);
-            ExportDevicesToExcel(zones.SelectMany(z => z.DeviceViewModels.Select(o => o.Model)).ToList(), filePath, workbook);
+            ExportDevicesToExcel(zones, filePath, workbook);
         }
 
         public void ExportZoneToExcel(List<ProvZoneViewModel> zones, string filePath, IWorkbook workbook = null)
@@ -36,6 +36,7 @@ namespace EquipmentLayout.Models
             headerRow.CreateCell(1).SetCellValue("Y");
             headerRow.CreateCell(2).SetCellValue("Width");
             headerRow.CreateCell(3).SetCellValue("Height");
+            headerRow.CreateCell(3).SetCellValue("Name");
 
             // Заполнение данными для каждого объекта Obstacle
             for (int i = 0; i < zones.Count; i++)
@@ -45,6 +46,7 @@ namespace EquipmentLayout.Models
                 dataRow.CreateCell(1).SetCellValue(zone.Name);
                 dataRow.CreateCell(0).SetCellValue(zone.Width);
                 dataRow.CreateCell(1).SetCellValue(zone.Height);
+                dataRow.CreateCell(1).SetCellValue(zone.Name);
 
             }
 
@@ -55,10 +57,12 @@ namespace EquipmentLayout.Models
             }
         }
 
-        public void ExportObstaclesToExcel(List<Obstacle> obstacles, string filePath, IWorkbook workbook = null)
+        public void ExportObstaclesToExcel(List<ProvZoneViewModel> zones, string filePath, IWorkbook workbook = null)
         {
             if (workbook == null)
                 workbook = new XSSFWorkbook(); ISheet sheet = workbook.CreateSheet("Obstacles");
+
+            var obstacles = zones.SelectMany(z => z.ObstacleViewModels.Select(o => o.Model)).ToList();
 
             // Создание заголовков столбцов
             IRow headerRow = sheet.CreateRow(0);
@@ -66,17 +70,22 @@ namespace EquipmentLayout.Models
             headerRow.CreateCell(1).SetCellValue("Y");
             headerRow.CreateCell(2).SetCellValue("Width");
             headerRow.CreateCell(3).SetCellValue("Height");
+            headerRow.CreateCell(3).SetCellValue("Zone Name");
 
             // Заполнение данными для каждого объекта Obstacle
             for (int i = 0; i < obstacles.Count; i++)
             {
                 Obstacle obstacle = obstacles[i];
+
+                var zoneName = zones.FirstOrDefault(z => z.ObstacleViewModels.Select(vm => vm.Model).Contains(obstacle)).Name;
+
                 IRow dataRow = sheet.CreateRow(i + 1);
                 dataRow.CreateCell(0).SetCellValue(obstacle.Name);
                 dataRow.CreateCell(0).SetCellValue(obstacle.X);
                 dataRow.CreateCell(1).SetCellValue(obstacle.Y);
                 dataRow.CreateCell(2).SetCellValue(obstacle.Width);
                 dataRow.CreateCell(3).SetCellValue(obstacle.Height);
+                dataRow.CreateCell(4).SetCellValue(zoneName);
             }
 
             // Сохранение рабочей книги в файл
@@ -137,11 +146,13 @@ namespace EquipmentLayout.Models
             }
         }
 
-        public void ExportDevicesToExcel(List<Device> devices, string filePath, IWorkbook workbook = null)
+        public void ExportDevicesToExcel(List<ProvZoneViewModel> zones, string filePath, IWorkbook workbook = null)
         {
             // Создание нового документа Excel
             if (workbook == null)
                 workbook = new XSSFWorkbook();
+
+            var devices = zones.SelectMany(z => z.DeviceViewModels.Select(o => o.Model)).ToList();
 
             ISheet sheet = workbook.CreateSheet("Devices");
 
@@ -162,11 +173,15 @@ namespace EquipmentLayout.Models
             headerRow.CreateCell(11).SetCellValue("ServiceArea X");
             headerRow.CreateCell(12).SetCellValue("ServiceArea Y");
             headerRow.CreateCell(13).SetCellValue("Template Type");
+            headerRow.CreateCell(14).SetCellValue("Zone Name");
 
             // Заполнение данными из объектов Device
             foreach (var device in devices)
             {
                 IRow dataRow = sheet.CreateRow(rowIndex++);
+
+                var zoneName = zones.FirstOrDefault(z => z.DeviceViewModels.Select(vm=>vm.Model).Contains(device)).Name;
+                
                 dataRow.CreateCell(0).SetCellValue(device.Name);
                 dataRow.CreateCell(1).SetCellValue(device.Width);
                 dataRow.CreateCell(2).SetCellValue(device.Height);
@@ -181,6 +196,7 @@ namespace EquipmentLayout.Models
                 dataRow.CreateCell(11).SetCellValue(device.ServiceArea.X);
                 dataRow.CreateCell(12).SetCellValue(device.ServiceArea.Y);
                 dataRow.CreateCell(13).SetCellValue(device.Template.Name);
+                dataRow.CreateCell(14).SetCellValue(zoneName);
             }
 
             // Автоматическое изменение ширины столбцов
