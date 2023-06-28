@@ -87,9 +87,16 @@
     <Compile Include="ViewModels\DeviceAreaViewModel.cs" />
     <Compile Include="ViewModels\ProvZoneViewModel.cs" />
     <Compile Include="ViewModels\TemplateEditorViewModel.cs" />
+    <Compile Include="Views\DialogZoneName.xaml.cs">
+      <DependentUpon>DialogZoneName.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\TemplateEditorWindow.xaml.cs">
       <DependentUpon>TemplateEditorWindow.xaml</DependentUpon>
     </Compile>
+    <Page Include="Views\DialogZoneName.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\Resources.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

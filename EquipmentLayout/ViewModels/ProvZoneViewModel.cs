@@ -1,4 +1,5 @@
-﻿using EquipmentLayout.Models;
+﻿using EquipmentLayout.Infrastructure;
+using EquipmentLayout.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,9 +9,19 @@ using System.Threading.Tasks;
 
 namespace EquipmentLayout.ViewModels
 {
-    public class ProvZoneViewModel
+    public class ProvZoneViewModel : BaseViewModel
     {
-        public string Name { get; set; }
+        private string _name;
+        public string Name 
+        {
+            get => _name;
+            set
+            {
+                if (_name == value) return;
+                _name = value;
+                OnPropertyChanged(nameof(Name));
+            }
+        }
         public ObservableCollection<IRectItem> RectItems { get; set; }
 
         public ObservableCollection<ObstacleViewModel> ObstacleViewModels { get; set; }

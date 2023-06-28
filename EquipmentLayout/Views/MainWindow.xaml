@@ -110,12 +110,25 @@
             </DockPanel>
 
 
-                
-                <DockPanel>
 
-                <TabControl DockPanel.Dock="Top" ItemsSource="{Binding Zones}" DisplayMemberPath="Name" SelectedItem="{Binding Zone}" Height="23" VerticalAlignment="Top">
-            </TabControl>
-            
+            <DockPanel>
+                <Grid DockPanel.Dock="Top">
+                    <TabControl  x:Name="tab" ItemsSource="{Binding Zones}" SelectedItem="{Binding Zone}" Height="30" VerticalAlignment="Top">
+                        <TabControl.ItemTemplate>
+                            <DataTemplate>
+                                <Label VerticalAlignment="Top" Content="{Binding Path=Name, UpdateSourceTrigger=PropertyChanged}">
+                                </Label>
+                            </DataTemplate>
+                        </TabControl.ItemTemplate>
+                    </TabControl>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+
+                        <Button Height="23" Margin="5, 0" HorizontalAlignment="Right" Content="Добавить" Command="{Binding AddZone}"/>
+                        <Button Height="23" Margin="5, 0" HorizontalAlignment="Right" Content="Переименовать" Command="{Binding RenameZone}"/>
+                        <Button Height="23" Margin="5, 0" HorizontalAlignment="Right" Content="Удалить" Command="{Binding DeleteZone}"/>
+                    </StackPanel>
+                </Grid>
+
                 <StackPanel Margin="10"  DockPanel.Dock="Bottom" Orientation="Horizontal">
 
 
@@ -133,11 +146,8 @@
                 </StackPanel>
 
                 <StaticResource ResourceKey="canvasRes" />
-                
-                </DockPanel>
 
-           
-
+            </DockPanel>
 
         </DockPanel>
     </Grid>

@@ -39,8 +39,10 @@ namespace EquipmentLayout.ViewModels
         public DelegateCommand DeleteTemplateCommand { get; }
         public DelegateCommand AddObstacleCommand { get; }
         public DelegateCommand OpenTemplateEditorCommand { get; }
-        public RectItemsProvider RectItemsProvider { get; }
         public DelegateCommand AddTemplateCommand { get; }
+        public DelegateCommand AddZone { get; }
+        public DelegateCommand RenameZone { get; }
+        public DelegateCommand DeleteZone { get; }
 
 
         public ObservableCollection<ProvZoneViewModel> Zones { get; set; }
@@ -141,9 +143,51 @@ namespace EquipmentLayout.ViewModels
             AddTemplateCommand = new DelegateCommand(AddTemplateCommand_Executed);
             DeleteTemplateCommand = new DelegateCommand(DeleteTemplateCommand_Executed);
             AddObstacleCommand = new DelegateCommand(AddObstacleCommand_Executed);
-
+            AddZone = new DelegateCommand(AddZone_Executed);
+            DeleteZone = new DelegateCommand(DeleteZone_Executed);
+            RenameZone = new DelegateCommand(RenameZone_Executed);
 
             InicializeDefaultState();
+        }
+
+        private void AddZone_Executed()
+        {
+            var dialog = new DialogZoneName();
+            dialog.txtContent.Content = "Введите имя зоны";
+            dialog.Title = "Выбор имени";
+            if (dialog.ShowDialog() == true)
+            {
+                var zone = new ProvZoneViewModel();
+                zone.Width = 300;
+                zone.Height = 200;
+                zone.Name = dialog.txtResult.Text;
+                Zones.Add(zone);
+            }
+        }
+
+        private void DeleteZone_Executed()
+        {
+            var zone = Zone;
+            Zone = Zones.FirstOrDefault(z=>z != Zone);
+            if(Zone == null)
+            {
+                MessageBox.Show("Нельзя удалить все зоны");
+            }
+
+            Zones.Remove(zone);
+        }
+
+        private void RenameZone_Executed()
+        {
+            var dialog = new DialogZoneName();
+            dialog.txtContent.Content = "Введите имя зоны";
+            dialog.Title = "Выбор имени";
+            dialog.txtResult.Text = Zone.Name;
+            if (dialog.ShowDialog() == true)
+            { 
+                Zone.Name = dialog.txtResult.Text;
+            }
+
         }
 
         private void InicializeDefaultState()
