@@ -224,7 +224,7 @@ namespace EquipmentLayout.Models
             return isSet;
         }
 
-        public List<Device> PlaceEquipment(List<Device> devices, List<int[]> parentRects, List<Obstacle> obstacles)
+        public List<Device> PlaceEquipment(List<Device> devices, int[] parentRects, List<Obstacle> obstacles)
         {
             _devices = new List<RectInfo>();
             //var childRects = GenChildRects(devices);
@@ -250,7 +250,7 @@ namespace EquipmentLayout.Models
 
             var notSolvedDevices = new List<RectInfo>();
 
-            var parentRect = parentRects[0];
+            var parentRect = parentRects;
             foreach (var rect in childRects.OrderByDescending(r => r.Width + r.Height))
             {
                 _devices = _devices.OrderBy(x => x.LT.X).OrderBy(y => y.LT.Y).ToList();

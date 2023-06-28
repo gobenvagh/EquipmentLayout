@@ -109,23 +109,32 @@
                 </ListBox>
             </DockPanel>
 
-            <StackPanel Margin="10"  DockPanel.Dock="Bottom" Orientation="Horizontal">
+
+                
+                <DockPanel>
+
+                <TabControl DockPanel.Dock="Top" ItemsSource="{Binding Zones}" DisplayMemberPath="Name" SelectedItem="{Binding Zone}" Height="23" VerticalAlignment="Top">
+            </TabControl>
+            
+                <StackPanel Margin="10"  DockPanel.Dock="Bottom" Orientation="Horizontal">
 
 
-                <TextBlock VerticalAlignment="Center">Ширина</TextBlock>
-                <TextBox Text="{Binding Path=Zone.Width, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5" Width="100">
-                </TextBox>
+                    <TextBlock VerticalAlignment="Center">Ширина</TextBlock>
+                    <TextBox Text="{Binding Path=Zone.Width, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5" Width="100">
+                    </TextBox>
 
-                <TextBlock VerticalAlignment="Center">Высота</TextBlock>
+                    <TextBlock VerticalAlignment="Center">Высота</TextBlock>
 
-                <TextBox Text="{Binding Path=Zone.Height, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5" Width="100">
-                </TextBox>
+                    <TextBox Text="{Binding Path=Zone.Height, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5" Width="100">
+                    </TextBox>
 
-                <Button Margin="5" Height="20" Width="60" Command="{Binding CalcCommand}" Content="Расчет">
-                </Button>
-            </StackPanel>
+                    <Button Margin="5" Height="20" Width="60" Command="{Binding CalcCommand}" Content="Расчет">
+                    </Button>
+                </StackPanel>
 
-            <StaticResource ResourceKey="canvasRes" />
+                <StaticResource ResourceKey="canvasRes" />
+                
+                </DockPanel>
 
            
 

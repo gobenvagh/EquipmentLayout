@@ -1,4 +1,5 @@
-﻿using EquipmentLayout.Infrastructure;
+﻿using CsvHelper;
+using EquipmentLayout.Infrastructure;
 using EquipmentLayout.Models;
 using EquipmentLayout.Views;
 using Prism.Commands;
@@ -11,10 +12,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 
@@ -24,13 +27,13 @@ namespace EquipmentLayout.ViewModels
     {
         public ObservableCollection<DeviceTemplateViewModel> DeviceTemplateViewModels { get; set; }
 
-        public ObservableCollection<IRectItem> RectItems { get; set; }
+        public ObservableCollection<IRectItem> RectItems => Zone.RectItems;
 
-        public ObservableCollection<ObstacleViewModel> ObstacleViewModels { get; set; }
+        public ObservableCollection<ObstacleViewModel> ObstacleViewModels => Zone.ObstacleViewModels;
+
+        public ObservableCollection<DeviceViewModel> DeviceViewModels => Zone.DeviceViewModels;
 
         public ObservableCollection<IProperty> Properties { get; set; }
-
-        public ObservableCollection<DeviceViewModel> DeviceViewModels { get; set; }
 
         public DelegateCommand CalcCommand { get; }
         public DelegateCommand DeleteTemplateCommand { get; }
@@ -39,15 +42,22 @@ namespace EquipmentLayout.ViewModels
         public RectItemsProvider RectItemsProvider { get; }
         public DelegateCommand AddTemplateCommand { get; }
 
-        private Rectangle _zone;
 
-        public Rectangle Zone
+        public ObservableCollection<ProvZoneViewModel> Zones { get; set; }
+
+        private ProvZoneViewModel _zone;
+
+        public ProvZoneViewModel Zone
         {
             get => _zone;
             set
             {
-                this._zone = value;
+                _zone = value;
                 OnPropertyChanged(nameof(Zone));
+                OnPropertyChanged(nameof(DeviceViewModels));
+                OnPropertyChanged(nameof(ObstacleViewModels));
+                OnPropertyChanged(nameof(RectItems));
+
             }
         }
 
@@ -106,22 +116,40 @@ namespace EquipmentLayout.ViewModels
         public MainWindowViewModel()
         {
             DeviceTemplateViewModels = new ObservableCollection<DeviceTemplateViewModel>();
-            RectItems = new ObservableCollection<IRectItem>();
-            ObstacleViewModels = new ObservableCollection<ObstacleViewModel>();
-            DeviceViewModels = new ObservableCollection<DeviceViewModel>();
+
+            Zones = new ObservableCollection<ProvZoneViewModel>();
+
+            Zone = new ProvZoneViewModel()
+            {
+                Width = 460,
+                Height = 330,
+                Name = "Основное помещение"
+            };
+
+            Zones.Add(Zone);
+
+            var zone2 = new ProvZoneViewModel()
+            {
+                Width = 460,
+                Height = 330,
+                Name = "Второе помещение"
+            };
+
+            Zones.Add(zone2);
 
             CalcCommand = new DelegateCommand(CalcCommand_Executed1);
             AddTemplateCommand = new DelegateCommand(AddTemplateCommand_Executed);
             DeleteTemplateCommand = new DelegateCommand(DeleteTemplateCommand_Executed);
             AddObstacleCommand = new DelegateCommand(AddObstacleCommand_Executed);
 
-            RectItemsProvider = new RectItemsProvider(DeviceViewModels, ObstacleViewModels, RectItems);
 
-            Zone = new Rectangle()
-            {
-                Width = 460,
-                Height = 330,
-            };
+            InicializeDefaultState();
+        }
+
+        private void InicializeDefaultState()
+        {
+
+
 
             var factory = new DeviceFactory();
 
@@ -150,11 +178,7 @@ namespace EquipmentLayout.ViewModels
 
             DeviceTemplateViewModels.Add(vm_template3);
 
-            //RectItems.Add(device1);
-            //RectItems.Add(device2);
-
             DeviceTemplateViewModels.Add(vm_template2);
-
         }
 
         private string GroupToStr(IEnumerable<Device> group)
@@ -167,47 +191,41 @@ namespace EquipmentLayout.ViewModels
 
         private void CalcCommand_Executed1()
         {
-            var obstaclesVm = this.ObstacleViewModels.ToList();
-            try
+            bool solved = false;
+            var s = 0;
+
+            var factory = new DeviceFactory();
+            var devices = new List<Device>();
+            foreach (var deviceTemplateViewModel in DeviceTemplateViewModels)
             {
+                for (int i = 0; i < deviceTemplateViewModel.Count; i++)
+                {
+                    var deviceTemplate = deviceTemplateViewModel.Model;
+                    var device = factory.GetDevice(new Point(), deviceTemplate, false);
+                    devices.Add(device);
+                }
+            }
+
+            while (!solved)
+            {
+                Zone = Zones[s++];
+
+                var obstaclesVm = this.ObstacleViewModels.ToList();
                 var obstacles = obstaclesVm.Select(x => x.Model).ToList();
                 RectItems.Clear();
-                var factory = new DeviceFactory();
-                var devices = new List<Device>();
-                foreach (var deviceTemplateViewModel in DeviceTemplateViewModels)
-                {
-                    for (int i = 0; i < deviceTemplateViewModel.Count; i++)
-                    {
-                        var deviceTemplate = deviceTemplateViewModel.Model;
-                        var device = factory.GetDevice(new Point(), deviceTemplate, false);
-                        devices.Add(device);
-                        //var deviceVm = new DeviceViewModel(device);
-                        //RectItems.Add(deviceVm);
-                    }
-                }
 
-
-
-                /*var childRects = DeviceTemplateViewModels
-                    .SelectMany(vm => Enumerable.Range(0, vm.Count).Select(_ => new int[] { vm.Model.Width, vm.Model.Height }))
-                    .ToList();
-*/
                 var parentRects = GetParentRects();
-                var solutions = new Solver().PlaceEquipment(devices, parentRects, obstacles);
+
+                var solutions = new Solver().PlaceEquipment(devices, parentRects[0], obstacles);
 
                 var rectItems = new List<IRectItem>(RectItems);
 
+                var notSolvedDevices = devices.Where(d => !solutions.Contains(d)).ToList();
 
-                var notSolvedDevices = devices.Where(d=>!solutions.Contains(d)).ToList();
-
-                        
-
-                // Размещение оборудования на свободных местах в зоне
                 if (solutions.Count > 0)
                 {
                     for (int i = 0; i < solutions.Count(); i++)
                     {
-                        //var device = rectItems.OfType<DeviceViewModel>().FirstOrDefault(vm => vm.Model == solutions[i]);
                         var device = new DeviceViewModel(solutions[i]);
 
                         var solution = solutions[i];
@@ -226,27 +244,22 @@ namespace EquipmentLayout.ViewModels
 
                 OnPropertyChanged(nameof(RectItems));
 
-                if (notSolvedDevices.Any())
-                {
-                    string txt = notSolvedDevices
-                        .GroupBy(d => d.Template)
-                        .Select(g =>
-                        GroupToStr(g))
-                        .Aggregate((l, r) => l + '\n' + r);
-                    MessageBox.Show(txt, "Не удалось расставить устройства");
-                }
-
+                devices = notSolvedDevices;
+                if (devices.Count == 0 || Zones.Count == s)
+                    solved = true;
             }
-            catch (InvalidOperationException ex)
-            {
-                // Обработка ошибки размещения оборудования
-                // Отображение сообщения об ошибке пользователю
 
-                MessageBox.Show(ex.Message, "Ошибка размещения оборудования", MessageBoxButton.OK, MessageBoxImage.Error);
-                foreach (var ob in obstaclesVm)
-                    RectItems.Add(ob);
+            if (devices.Any())
+            {
+                string txt = devices
+                    .GroupBy(d => d.Template)
+                    .Select(g =>
+                    GroupToStr(g))
+                    .Aggregate((l, r) => l + '\n' + r);
+                MessageBox.Show(txt, "Не удалось расставить устройства");
             }
         }
+
 
 
 
@@ -289,10 +302,6 @@ namespace EquipmentLayout.ViewModels
 
     }
 
-    public class AreasProvider
-    {
-
-    }
 
     public class RectItemsProvider
     {
