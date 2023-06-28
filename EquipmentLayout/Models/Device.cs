@@ -73,7 +73,7 @@ namespace EquipmentLayout.Models
             return clone;
         }
 
-        private Area()
+        public Area()
         {
 
         }

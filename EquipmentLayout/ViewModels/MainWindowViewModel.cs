@@ -3,6 +3,7 @@ using EquipmentLayout.Infrastructure;
 using EquipmentLayout.Models;
 using EquipmentLayout.Views;
 using Microsoft.Win32;
+using Org.BouncyCastle.Utilities;
 using Prism.Commands;
 using System;
 using System.Collections;
@@ -36,7 +37,7 @@ namespace EquipmentLayout.ViewModels
         public ObservableCollection<DeviceViewModel> DeviceViewModels => Zone.DeviceViewModels;
 
         public ObservableCollection<IProperty> Properties { get; set; }
-
+        public DelegateCommand OpenCommand { get; }
         public DelegateCommand SaveCommand{ get; }
         public DelegateCommand CalcCommand { get; }
         public DelegateCommand DeleteTemplateCommand { get; }
@@ -142,6 +143,7 @@ namespace EquipmentLayout.ViewModels
 
             Zones.Add(zone2);
 
+            OpenCommand = new DelegateCommand(OpenCommand_Executed);
             SaveCommand = new DelegateCommand(SaveCommand_Executed);
             CalcCommand = new DelegateCommand(CalcCommand_Executed1);
             AddTemplateCommand = new DelegateCommand(AddTemplateCommand_Executed);
@@ -152,6 +154,35 @@ namespace EquipmentLayout.ViewModels
             RenameZone = new DelegateCommand(RenameZone_Executed);
 
             InicializeDefaultState();
+        }
+
+        private void OpenCommand_Executed()
+        {
+            var dialog = new OpenFileDialog();
+            dialog.DefaultExt = ".xlsx"; // Установка расширения файла по умолчанию
+            dialog.AddExtension = true; // Добавление расширения, если не указано пользователем
+            dialog.Filter = "Excel files(*.xlsx)|*.xlsx";
+            if (dialog.ShowDialog() == true)
+            {
+                var fileName = dialog.FileName;
+                var result = new ExcelImporter().ImportWithExcel(fileName);
+                DeviceTemplateViewModels = new ObservableCollection<DeviceTemplateViewModel>(result.Templates);
+                Zones = new ObservableCollection<ProvZoneViewModel>(result.Zones);
+                /*foreach(var zone in Zones)
+                {
+                    foreach (var obst in zone.ObstacleViewModels)
+                        zone.RectItems.Add(obst);
+                    foreach (var device in zone.DeviceViewModels)
+                        zone.RectItems.Add(device);
+                }*/
+                Zone = Zones[0];
+                OnPropertyChanged(nameof(Zones));
+                OnPropertyChanged(nameof(Zone));
+                OnPropertyChanged(nameof(Zone.RectItems));
+                OnPropertyChanged(nameof(DeviceTemplateViewModels));
+                OnPropertyChanged(nameof(RectItems));
+                OnPropertyChanged(nameof(ObstacleViewModels));
+            }
         }
 
         private void SaveCommand_Executed()            

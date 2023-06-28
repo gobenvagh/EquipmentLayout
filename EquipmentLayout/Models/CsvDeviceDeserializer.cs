@@ -16,7 +16,7 @@ namespace EquipmentLayout.Models
     public class CsvDeviceDeserializer
     {
 
-        public IList<Device> Read(string filename)
+        /*public IList<Device> Read(string filename)
         {
             var configuration = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
@@ -46,6 +46,6 @@ namespace EquipmentLayout.Models
                 }
                 return devices;
             }
-        }
+        }*/
     }
 }

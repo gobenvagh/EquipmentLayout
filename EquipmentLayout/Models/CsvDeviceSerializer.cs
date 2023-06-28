@@ -14,7 +14,7 @@ using EquipmentLayout.ViewModels;
 
 namespace EquipmentLayout.Models
 {
-    public class CsvDeviceSerializer
+/*    public class CsvDeviceSerializer
     {
         public void Write(Rectangle zoneDevice, IList<DeviceTemplateViewModel> deviceTempRecords,
             IList<ObstacleViewModel> obstacleRecords, string filename)
@@ -43,9 +43,9 @@ namespace EquipmentLayout.Models
             }
             
         }
-    }
+    }*/
 
-    class ZoneDto
+/*    class ZoneDto
     {
         public ZoneDto(int width, int height)
         {
@@ -106,7 +106,7 @@ namespace EquipmentLayout.Models
             this.X = x;
             this.X = y;
         }
-    }
+    }*/
 
 
 }

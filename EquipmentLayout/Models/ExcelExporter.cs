@@ -42,11 +42,10 @@ namespace EquipmentLayout.Models
             for (int i = 0; i < zones.Count; i++)
             {
                 ProvZoneViewModel zone = zones[i];
-                IRow dataRow = sheet.CreateRow(i + 1);
-                dataRow.CreateCell(1).SetCellValue(zone.Name);
-                dataRow.CreateCell(0).SetCellValue(zone.Width);
-                dataRow.CreateCell(1).SetCellValue(zone.Height);
-                dataRow.CreateCell(1).SetCellValue(zone.Name);
+                IRow dataRow = sheet.CreateRow(i + 1);                
+                dataRow.CreateCell(0).SetCellValue(zone.Name);
+                dataRow.CreateCell(1).SetCellValue(zone.Width);
+                dataRow.CreateCell(2).SetCellValue(zone.Height);
 
             }
 
@@ -62,30 +61,31 @@ namespace EquipmentLayout.Models
             if (workbook == null)
                 workbook = new XSSFWorkbook(); ISheet sheet = workbook.CreateSheet("Obstacles");
 
-            var obstacles = zones.SelectMany(z => z.ObstacleViewModels.Select(o => o.Model)).ToList();
+            var obstacles = zones.SelectMany(z => z.ObstacleViewModels).ToList();
 
             // Создание заголовков столбцов
             IRow headerRow = sheet.CreateRow(0);
-            headerRow.CreateCell(0).SetCellValue("X");
-            headerRow.CreateCell(1).SetCellValue("Y");
-            headerRow.CreateCell(2).SetCellValue("Width");
-            headerRow.CreateCell(3).SetCellValue("Height");
-            headerRow.CreateCell(3).SetCellValue("Zone Name");
+            headerRow.CreateCell(0).SetCellValue("Name");
+            headerRow.CreateCell(1).SetCellValue("X");
+            headerRow.CreateCell(2).SetCellValue("Y");
+            headerRow.CreateCell(3).SetCellValue("Width");
+            headerRow.CreateCell(4).SetCellValue("Height");
+            headerRow.CreateCell(5).SetCellValue("Zone Name");
 
             // Заполнение данными для каждого объекта Obstacle
             for (int i = 0; i < obstacles.Count; i++)
             {
-                Obstacle obstacle = obstacles[i];
+                var obstacle = obstacles[i];
 
-                var zoneName = zones.FirstOrDefault(z => z.ObstacleViewModels.Select(vm => vm.Model).Contains(obstacle)).Name;
+                var zoneName = zones.FirstOrDefault(z => z.ObstacleViewModels.Contains(obstacle)).Name;
 
                 IRow dataRow = sheet.CreateRow(i + 1);
                 dataRow.CreateCell(0).SetCellValue(obstacle.Name);
-                dataRow.CreateCell(0).SetCellValue(obstacle.X);
-                dataRow.CreateCell(1).SetCellValue(obstacle.Y);
-                dataRow.CreateCell(2).SetCellValue(obstacle.Width);
-                dataRow.CreateCell(3).SetCellValue(obstacle.Height);
-                dataRow.CreateCell(4).SetCellValue(zoneName);
+                dataRow.CreateCell(1).SetCellValue(obstacle.X);
+                dataRow.CreateCell(2).SetCellValue(obstacle.Y);
+                dataRow.CreateCell(3).SetCellValue(obstacle.Width);
+                dataRow.CreateCell(4).SetCellValue(obstacle.Height);
+                dataRow.CreateCell(5).SetCellValue(zoneName);
             }
 
             // Сохранение рабочей книги в файл
@@ -103,9 +103,9 @@ namespace EquipmentLayout.Models
 
             // Создание заголовков столбцов
             IRow headerRow = sheet.CreateRow(0);
-            headerRow.CreateCell(0).SetCellValue("Width");
-            headerRow.CreateCell(1).SetCellValue("Height");
-            headerRow.CreateCell(2).SetCellValue("Name");
+            headerRow.CreateCell(0).SetCellValue("Name");
+            headerRow.CreateCell(1).SetCellValue("Width");
+            headerRow.CreateCell(2).SetCellValue("Height");
             headerRow.CreateCell(3).SetCellValue("Count");
             headerRow.CreateCell(4).SetCellValue("Work Area Width");
             headerRow.CreateCell(5).SetCellValue("Work Area Height");
@@ -123,9 +123,9 @@ namespace EquipmentLayout.Models
             {
                 DeviceTemplate template = deviceTemplates[i];
                 IRow dataRow = sheet.CreateRow(i + 1);
-                dataRow.CreateCell(0).SetCellValue(template.Width);
-                dataRow.CreateCell(1).SetCellValue(template.Height);
-                dataRow.CreateCell(2).SetCellValue(template.Name);
+                dataRow.CreateCell(0).SetCellValue(template.Name);
+                dataRow.CreateCell(1).SetCellValue(template.Width);
+                dataRow.CreateCell(2).SetCellValue(template.Height);
                 dataRow.CreateCell(3).SetCellValue(template.Count);
                 dataRow.CreateCell(4).SetCellValue(template.WorkArea.Width);
                 dataRow.CreateCell(5).SetCellValue(template.WorkArea.Height);
