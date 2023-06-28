@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using EquipmentLayout.ViewModels;
 using CsvHelper;
+using System.Windows;
 
 namespace EquipmentLayout.Models
 {
@@ -58,17 +59,20 @@ namespace EquipmentLayout.Models
             for(int i = 0; i < deviceDtos.Count(); i++)
             {
                 var template = templates.FirstOrDefault(t => t.Name == deviceDtos[i].TemplateType);
-                var device = new DeviceFactory().GetDevice(deviceDtos[i].X, deviceDtos[i].Y, template, false);
-
+                var device = new DeviceFactory().GetDevice(new Point(deviceDtos[i].X, deviceDtos[i].Y), template, false);
+                
                 var vm = new DeviceViewModel(device);
-
-                zones.FirstOrDefault(z => z.Name == deviceDtos[i].ZoneName).RectItems.Add(vm);
+                var zone = zones.FirstOrDefault(z => z.Name == deviceDtos[i].ZoneName);
+                zone.RectItems.Add(vm);
+                zone.RectItems.Add(vm.ServiceArea);
+                zone.RectItems.Add(vm.WorkArea);
             }
 
             for(int i = 0; i < obstcls.Count(); i++)
             {
                 var obs = obstcls[i];
                 var vm = new ObstacleViewModel(obs.X, obs.Y, obs.Width, obs.Height);
+                vm.Name = obs.Name;
                 zones.FirstOrDefault(z => z.Name == obs.ZoneName).RectItems.Add(vm);
 
             }

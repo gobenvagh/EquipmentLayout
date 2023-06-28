@@ -131,6 +131,8 @@ namespace EquipmentLayout.Models
         protected Device(DeviceTemplate deviceTemplate, int X, int Y)
         {
             this._template = deviceTemplate;
+            this.X = X;
+            this.Y = Y;
         }
     }
 

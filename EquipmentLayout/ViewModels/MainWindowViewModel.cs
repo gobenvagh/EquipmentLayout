@@ -159,8 +159,6 @@ namespace EquipmentLayout.ViewModels
         private void OpenCommand_Executed()
         {
             var dialog = new OpenFileDialog();
-            dialog.DefaultExt = ".xlsx"; // Установка расширения файла по умолчанию
-            dialog.AddExtension = true; // Добавление расширения, если не указано пользователем
             dialog.Filter = "Excel files(*.xlsx)|*.xlsx";
             if (dialog.ShowDialog() == true)
             {
@@ -188,8 +186,7 @@ namespace EquipmentLayout.ViewModels
         private void SaveCommand_Executed()            
         {
             var dialog = new SaveFileDialog();
-            dialog.DefaultExt = ".xlsx"; // Установка расширения файла по умолчанию
-            dialog.AddExtension = true; // Добавление расширения, если не указано пользователем
+            dialog.Filter = "Excel files(*.xlsx)|*.xlsx";
 
             if (dialog.ShowDialog() == true)
             {
