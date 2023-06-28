@@ -317,8 +317,8 @@ namespace EquipmentLayout.Models
                 if (notSolvedDevices.Contains(rectInfo))
                     continue;
 
-                var xOffset = new int[] { device.ServiceArea.X, device.WorkArea.X }.Min();
-                var yOffset = new int[] { device.ServiceArea.Y, device.WorkArea.Y }.Min();
+                var xOffset = new int[] { device.X, device.ServiceArea.X, device.WorkArea.X }.Min();
+                var yOffset = new int[] { device.Y, device.ServiceArea.Y, device.WorkArea.Y }.Min();
 
                 device.X = rectInfo.LT.X - xOffset;
                 device.Y = rectInfo.LT.Y - yOffset;
