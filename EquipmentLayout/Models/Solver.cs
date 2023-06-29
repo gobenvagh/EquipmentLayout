@@ -242,7 +242,6 @@ namespace EquipmentLayout.Models
             phantomDevices.AddRange(_obsts.Select(o => GetPhantomDevice(LeftCornerProjection(o.LT))));
             phantomDevices.AddRange(_obsts.Select(o => GetPhantomDevice(TopCornerProjection(o.LT))));
             phantomDevices.AddRange(_obsts.Select(o => GetPhantomDevice(LeftCornerProjection(o.LB))));
-            phantomDevices.AddRange(_obsts.Select(o => GetPhantomDevice(TopCornerProjection(o.RT))));
 
             _devices.AddRange(phantomDevices);
 
@@ -275,8 +274,7 @@ namespace EquipmentLayout.Models
                         isSet = TrySetOnCorner(device, parentRect, dev.RT);
                     if (dev.LB.IsFree && isSet != SetType.CanSet)
                         isSet = TrySetOnCorner(device, parentRect, dev.LB);
-                    if (dev.RB.IsFree && isSet != SetType.CanSet)
-                        isSet = TrySetOnCorner(device, parentRect, dev.RB);
+                    
 
                     if (isSet == SetType.CanSet)
                     {
